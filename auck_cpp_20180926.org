@@ -1,0 +1,167 @@
+#+STARTUP: beamer
+#+TITLE: Surfacing Composition
+#+SUBTITLE: (a preview of a Pacific++ 2018 presentation)
+#+AUTHOR: Toby Allsopp
+#+EMAIL: ~toby@mi6.gen.nz~
+#+DATE: 2018-09-26
+#+OPTIONS: toc:nil num:nil
+#+OPTIONS: reveal_center:t reveal_control:t reveal_height:-1 reveal_history:nil
+#+OPTIONS: reveal_keyboard:t reveal_overview:t reveal_progress:t
+#+OPTIONS: reveal_rolling_links:nil reveal_single_file:nil
+#+OPTIONS: reveal_slide_number:"c" reveal_title_slide:auto reveal_width:-1
+#+REVEAL_MARGIN: -1
+#+REVEAL_MIN_SCALE: -1
+#+REVEAL_MAX_SCALE: -1
+#+REVEAL_ROOT: ./reveal.js
+#+REVEAL_TRANS: default
+#+REVEAL_SPEED: default
+#+REVEAL_THEME: moon
+#+REVEAL_EXTRA_CSS:
+#+REVEAL_EXTRA_JS:
+#+REVEAL_HLEVEL: 1
+#+REVEAL_TITLE_SLIDE_BACKGROUND:
+#+REVEAL_TITLE_SLIDE_BACKGROUND_SIZE:
+#+REVEAL_TITLE_SLIDE_BACKGROUND_POSITION:
+#+REVEAL_TITLE_SLIDE_BACKGROUND_REPEAT:
+#+REVEAL_TITLE_SLIDE_BACKGROUND_TRANSITION:
+#+REVEAL_DEFAULT_SLIDE_BACKGROUND:
+#+REVEAL_DEFAULT_SLIDE_BACKGROUND_SIZE:
+#+REVEAL_DEFAULT_SLIDE_BACKGROUND_POSITION:
+#+REVEAL_DEFAULT_SLIDE_BACKGROUND_REPEAT:
+#+REVEAL_DEFAULT_SLIDE_BACKGROUND_TRANSITION:
+#+REVEAL_MATHJAX_URL: https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML
+#+REVEAL_PREAMBLE:
+#+REVEAL_HEAD_PREAMBLE:
+#+REVEAL_POSTAMBLE:
+#+REVEAL_MULTIPLEX_ID:
+#+REVEAL_MULTIPLEX_SECRET:
+#+REVEAL_MULTIPLEX_URL:
+#+REVEAL_MULTIPLEX_SOCKETIO_URL:
+#+REVEAL_SLIDE_HEADER:
+#+REVEAL_SLIDE_FOOTER:
+#+REVEAL_PLUGINS: (highlight)
+#+REVEAL_DEFAULT_FRAG_STYLE:
+#+REVEAL_INIT_SCRIPT:
+#+REVEAL_HIGHLIGHT_CSS: %r/lib/css/zenburn.css
+# +LATEX_CLASS_OPTIONS:
+# +LATEX_HEADER:
+# +LATEX_HEADER_EXTRA:
+# +DESCRIPTION:
+# +KEYWORDS:
+# +LATEX_COMPILER: pdflatex
+# +OPTIONS: H:1
+# +LATEX_CLASS: beamer
+# +COLUMNS: %45ITEM %10BEAMER_env(Env) %10BEAMER_act(Act) %4BEAMER_col(Col) %8BEAMER_opt(Opt)
+# +BEAMER_THEME: default
+# +BEAMER_COLOR_THEME:
+# +BEAMER_FONT_THEME:
+# +BEAMER_INNER_THEME:
+# +BEAMER_OUTER_THEME:
+# +BEAMER_HEADER:
+* Pacific++
+
+#+ATTR_REVEAL: :frag (t)
+   - Sydney
+   - October 18-19
+   - Tickets still on sale but only until the end of September!
+     
+#+BEGIN_NOTES
+This is a preview of some material I'll be presenting at the Pacific++
+conference in Sydney in October. Tickets are still available but only until the
+end of September - that's in 4 days!
+
+Please interrupt me to ask any questions you have. I'd also be very interested
+in any feedback about the content, but please save that for afterwards.
+#+END_NOTES
+
+* Composition
+
+$\forall x, y \in \mathbb{Z}, x + y \in \mathbb{Z}$
+
+#+BEGIN_NOTES
+Composition is a fairly overloaded term in programming. I'm going to talk about
+it in a sense that's both very general and quite specific. I'm going to talk
+about composition as a kind of algebraic structure, meaning we have a set of
+something and one or more operations on elements of that set that result in
+other elements of the set.
+
+A, hopefully familiar, example is the set of integers and addition - addition is
+an operation that takes two integers and results in a third. No matter which two
+integers you feed into the addition operation, you always get an integer out.
+This property is known as *closure*.
+
+In the kind of composition I'm going to talk about, the elements of the set are
+parts of your program, for example functions or types, and the operations are
+things that we, as programmers, do to them.
+#+END_NOTES
+
+* Expressions
+
+#+BEGIN_NOTES
+Expressions in most programming languages, including C++, exhibit rich
+composition. We can start with a relatively small set of primitive expressions
+and compose them together to make an infinite set of possible expressions.
+#+END_NOTES
+
+** Primitive Expressions
+
+#+ATTR_REVEAL: :frag (t)
+- literal :: e.g. ~3~ or ~"Hello"~
+- id-expression :: e.g. ~x~
+
+** Operations on Expressions
+
+#+ATTR_REVEAL: :frag (t)
+- parenthesise :: ~(x)~
+- unary operator :: ~-x~
+- binary operator :: ~x + 4~
+- ternary operator :: ~x ? 7 : y~
+- function call :: ~f(x, y)~
+
+** Restrictions
+
+#+BEGIN_NOTES
+Now, not all combinations of expressions are _legal_ in C++ - we have to worry
+about types and value categories and what-not.
+#+END_NOTES
+
+#+ATTR_REVEAL: :frag (t)
+- ~"Hello"s + 7~ (no matching overload)
+- ~&7~ (can't take the address of a prvalue)
+- ~7(1, 2)~ (not a function)
+
+Not every composition yields an expression, but none yield anything /other/
+than an expression.
+
+* Statements
+
+  #+BEGIN_NOTES
+  Statements in C++ have much more limited composition possibilities than expressions.
+  #+END_NOTES
+   
+** Primitive Statements
+
+#+ATTR_REVEAL: :frag (t)
+- expression statement :: ~x + 4;~
+- jump statement :: ~goto fail;~, ~return 7;~
+- declaration statement :: ~auto x = 5;~
+
+** Composed Statements
+
+#+ATTR_REVEAL: :frag (t)
+- compound statement :: ~{~ /statement_1/ ... /statement_n/ ~}~
+- selection statement :: ~if~ ~(~ /condition/ ~)~ /statement_1/ ~else~ /statement_2/\\
+  ~switch~ ~(~ /condition/ ~)~ /statement/
+- iteration statement :: ~do~ /statement/ ~while~ ~(~ /condition/ ~)~;\\
+  ~while~ ~(~ /condition/ ~)~ /statement/\\
+  ~for~ ~(~ /for-stuff/ ~)~ /statement/
+
+#+BEGIN_NOTES
+This is, so far, composition built into the grammar of the language. There's no
+way to change or extend this - you can't introduce a new kind of expression or
+statement.
+
+Things get more interesting when we consider functions.
+#+END_NOTES
+
+* Functions

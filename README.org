@@ -1,0 +1,408 @@
+#+TITLE: Surfacing Composition
+#+OPTIONS: reveal_center:t reveal_control:t reveal_height:-1 reveal_history:nil
+#+OPTIONS: reveal_keyboard:t reveal_overview:t reveal_progress:t
+#+OPTIONS: reveal_rolling_links:nil reveal_single_file:nil
+#+OPTIONS: reveal_slide_number:"c" reveal_title_slide:auto reveal_width:-1
+#+REVEAL_MARGIN: -1
+#+REVEAL_MIN_SCALE: -1
+#+REVEAL_MAX_SCALE: -1
+#+REVEAL_ROOT: http://cdn.jsdelivr.net/reveal.js/3.0.0/
+#+REVEAL_TRANS: default
+#+REVEAL_SPEED: default
+#+REVEAL_THEME: moon
+#+REVEAL_EXTRA_CSS:
+#+REVEAL_EXTRA_JS:
+#+REVEAL_HLEVEL:
+#+REVEAL_TITLE_SLIDE_BACKGROUND:
+#+REVEAL_TITLE_SLIDE_BACKGROUND_SIZE:
+#+REVEAL_TITLE_SLIDE_BACKGROUND_POSITION:
+#+REVEAL_TITLE_SLIDE_BACKGROUND_REPEAT:
+#+REVEAL_TITLE_SLIDE_BACKGROUND_TRANSITION:
+#+REVEAL_DEFAULT_SLIDE_BACKGROUND:
+#+REVEAL_DEFAULT_SLIDE_BACKGROUND_SIZE:
+#+REVEAL_DEFAULT_SLIDE_BACKGROUND_POSITION:
+#+REVEAL_DEFAULT_SLIDE_BACKGROUND_REPEAT:
+#+REVEAL_DEFAULT_SLIDE_BACKGROUND_TRANSITION:
+#+REVEAL_MATHJAX_URL: https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML
+#+REVEAL_PREAMBLE:
+#+REVEAL_HEAD_PREAMBLE:
+#+REVEAL_POSTAMBLE:
+#+REVEAL_MULTIPLEX_ID:
+#+REVEAL_MULTIPLEX_SECRET:
+#+REVEAL_MULTIPLEX_URL:
+#+REVEAL_MULTIPLEX_SOCKETIO_URL:
+#+REVEAL_SLIDE_HEADER:
+#+REVEAL_SLIDE_FOOTER:
+#+REVEAL_PLUGINS:
+#+REVEAL_DEFAULT_FRAG_STYLE:
+#+REVEAL_INIT_SCRIPT:
+#+REVEAL_HIGHLIGHT_CSS: %r/lib/css/zenburn.css
+* Surfacing Composition
+  :PROPERTIES:
+  :EXPORT_TITLE: Surfacing Composition
+  :EXPORT_AUTHOR: Toby Allsopp
+  :END:
+  
+** Intro
+*** What is composition?
+   - putting things together to make other things
+   - how things are put together
+   - not the OO term; not the opposite of inheritance
+   - inheritance is a form of composition
+   - Composition is algebra - combine two things together to give another thing of the same "kind"
+     
+    Programming is all about taking things apart and putting them back together,
+    or about analysis and synthesis, or composition. We analyse the real-world
+    problem we want to solve, breaking it down into pieces that can be
+    rigorously defined, translate those pieces of problem into pieces of
+    solution, then compose those solution pieces into a program that solves the
+    problem.
+    
+    You might think of composition as simply the opposite of analysis, but that
+    doesn't quite capture what's going on because the analysis and the synthesis
+    happen in very different domains. The analysis happens in the problem
+    domain; the synthesis in the solution domain. The problem domain is
+    concrete; it reflects the real world or the business while the solution
+    domain is abstract.
+    
+    When we create programs, we always build them out of smaller fragments of
+    program. The act of combining smaller pieces to make larger pieces is what I
+    will refer to as "composition". When we recognise and give names to reusable
+    patterns of composition we are able to work at a higher level of abstraction
+    and can thereby solve more complex problems that we otherwise would be able
+    to.
+
+*** Why talk about composition?
+    - We do it all the time, goes hand-in-hand with abstraction
+    - Can help us figure out how to decompose a problem into manageable parts
+    - Can elicit reuse
+    - If we can give names to the ways in which we compose, we can work at a higher level of abstraction
+    - Giving things names gives us power over them (or at least means we can forget about the details temporarily)
+
+*** Performance
+    - not the focus of this talk
+    - if measurements show something is a problem, do whatever is necessary to fix it
+      
+** Machine instructions
+
+    - Compose into what looks like a sequence
+    - Aggressively reordered based on data dependencies
+      
+    Let's start with some *really* simple composition: putting machine
+    instructions together. Given two instructions, there's really only one way
+    to combine them (on a single thread of execution): you put one first and the
+    other one second. Now, which one goes first and which one goes second can
+    either not matter at all or matter a great deal, depending on how the
+    instructions interact via registers or memory or flags or what have you. So,
+    while the type of composition is very simple, either A then B or B then A,
+    it's really tricky to get it right, and as you add more and more
+    instructions the number of potential interactions grows exponentially and
+    this is why we don't program in assembler the whole time.
+    
+    However, it's possible to make this more manageable. For example, if you
+    decide on a calling convention for subroutines, for example which registers
+    are used for arguments, which for results, who is responsible for popping
+    things off the stack, then it becomes possible to reason about smaller
+    pieces of the program in (relative) isolation.
+
+    The machine instruction set gives you very limited tools to help with
+    defining subroutines, but it's possible to compose programs of some
+    complexity by imposing structure on top of them.
+
+    So if we're not using assembler (and remember this is a talk supposedly
+    about C++), let's take a step up the abstraction ladder and look at C. Now
+    things are a lot more complicated - we have _syntax_ to worry about; it's
+    not just instructions. We have expressions, statements, functions, structs,
+    files...
+
+** Expressions
+
+    How can we combine expressions together? Operators! We can use operators to
+    combine expressions to make other expressions. This is really nice from a
+    composition point of view. Remember that in C there are no overloaded
+    operators, so we know that the result of an operator depends only on the
+    values of the expressions fed into it. Now, things get a bit murkier when we
+    consider expressions that dereference pointers and expressions that change
+    the values of variables. In fact, once we have that, we're back in pretty
+    much the same place as writing assembler - we have to consider the program
+    as a whole before we can understand what any part of it is doing. But if we
+    stick to the read-only operators and don't get too carried away with
+    pointers then it's basically just arithmetic and reasoning about the
+    expression is really easy.
+    
+    Consider an expression like this:
+    #+BEGIN_SRC c++
+      x * x + y * y + z * z;
+    #+END_SRC
+    
+    There is a repeated pattern in the composition of these expressions:
+    multiplying the value of a variable with itself. How can we give a name to
+    this pattern of composition? Well, one way in C is to use a macro, and in a
+    sense that captures the composition very accurately.
+    
+    #+BEGIN_SRC c++
+      #define SQUARE(x) ((x) * (x))
+
+      SQUARE(x) + SQUARE(y) + SQUARE(z);
+    #+END_SRC
+    
+    Another way would be to use a function, which has some advantages.
+
+    #+BEGIN_SRC c++
+      double square(double x) {
+        return x * x;
+      }
+
+      square(x) + square(y) + square(z);
+    #+END_SRC
+
+** Statements
+
+    - Compose into a sequence, baked into the language
+    - Actual sequence not fixed - as-if rule
+    - Loops give names to common goto patterns
+    - Algorithms give names to common loops
+      
+    What about statements?
+    
+** Functions
+   
+   - We do this manually all the time
+     - One function calls another function and modifies the result
+       #+BEGIN_SRC c++
+         struct person {
+           int age;
+           std::string name;
+         };
+       #+END_SRC
+     #+BEGIN_SRC c++
+       int square(int x) { return x * x; }
+       int squareplusone(int x) { return square(x) + 1; }
+     #+END_SRC
+     - One function calls one function with the result of another function
+     #+BEGIN_SRC c++
+       int plusone(int x) { return x + 1; }
+       int ageplusone(person p) { return plusone(p.age); }
+
+       #define FWD(x) std::forward<decltype(x)>(x)
+
+       template <typename F, typename G>
+       auto compose(F&& f, G&& g) {
+         return [f = FWD(f), g = FWD(g)](auto&& x) {
+           return std::invoke(f, std::invoke(g, FWD(x)));
+         };
+       }
+
+       int ageplusone(person p) { return compose(plusone, &person::age)(p); }
+       const auto ageplusone = compose(plusone, &person::age);
+     #+END_SRC
+     - One function calls two functions and passes the results to a third
+     #+BEGIN_SRC c++
+       bool equal_ages(person p1, person p2) { return p1.age == p2.age; }
+       bool equal_names(person p1, person p2) { return p1.name == p2.name; }
+
+       template <typename F2, typename G>
+       auto on(F2&& f2, G&& g) {
+         return [f2 = FWD(f2), g = FWD(g)](auto&& x, auto&& y) {
+           return std::invoke(f2, std::invoke(g, FWD(x)), std::invoke(g, FWD(y)));
+         };
+       }
+
+       const auto equal_ages = on(std::equal_to<>{}, &person::age);
+       const auto equal_names = on(std::equal_to<>{}, &person::name);
+
+       template <typename G>
+       auto equal_by(G&& g) {
+         return on(std::equal_t<>{}, FWD(g));
+       }
+
+       const auto equal_ages = equal_by(&person::age);
+       const auto equal_names = equal_by(&person::name);
+     #+END_SRC
+     - Combine functions returning optional
+       #+BEGIN_SRC c++
+         std::optional<int> halfage(person p) { return p.age % 2 ? {} : p.age / 2; }
+
+         std::optional<std::string> halfage_to_string(person p) {
+           if (const auto ha = halfage(p)) {
+             return std::to_string(*ha);
+           } else {
+             return {};
+           }
+         }
+
+         template <typename F, typename G>
+         auto and_then(F&& f, G&& g) {
+           return [f = FWD(f), g = FWD(g)](auto&& x) {
+             if (auto&& y = g(FWD(x))) {
+               return std::make_optional(*y);
+             } else {
+               return std::nullopt;
+             }
+           };
+         }
+
+         const auto halfage_to_string =
+             and_then([](int age) { return std::to_string(age); }, halfage);
+
+         template <typename F, typename G>
+         auto optional_kliesli(F&& f, G&& g) {
+           return [f = FWD(f), g = VWD(g)](auto&& x) {
+             if (auto&& y = g(FWD(x))) {
+               return f(FWD(y));
+             } else {
+               return y;
+             }
+           }
+         }
+
+         const auto halfage_to_string = optional_kliesli(
+             [](int age) { return std::make_optional(std::to_string(age)); }, halfage);
+       #+END_SRC
+     - Combine functions returning error codes
+       #+BEGIN_SRC c++
+         std::error_code bar(int x, double* out);
+         std::error_code baz(double y, std::string* out);
+
+         std::error_code foo(int x, std::string* out) {
+           double y;
+           if (const auto ec = bar(x, &y)) {
+             return ec;
+           }
+           return baz(y, out);
+         }
+
+         template <typename F, typename G>
+         auto compose_ec(F&& f, G&& g) {
+           return [f = FWD(f), g = FWD(g)](auto&& x, out_param_t<F>* out) {
+             out_param_t<G> y;
+             if (const auto ec = g(FWD(x), &y)) {
+               return ec;
+             }
+             return f(y, out);
+           }
+         }
+
+         const auto foo = compose_ec(baz, bar);
+       #+END_SRC
+   - Can do it generically
+     - Bread and butter of functional programming
+     - Might look unfamiliar but brings the essence of what's going on to the surface
+     - Doesn't necessarily introduce overhead
+     - Can be just a way of thinking - you don't need to actually write code like this
+       
+** Algorithms
+   
+     - Standard algorithms compose clumsily
+     - Let's say we have a vector and we want to filter it according to some
+       predicate and then apply a transformation to the remaining elements.
+       This should be a simple matter of composing standard algorithms - there
+       are some for filtering (copy_if, remove_if) and one for transforming
+       (transform).
+        
+       In the style of the standard library, we write this as a function
+       template that takes iterators defining the input elements, an output
+       iterator defining where the result will go, and a couple of callable
+       objects to define the filtering criterion and the transformation to
+       apply.
+        
+       We run into the problem that the two algorithms we want to use,
+       `copy_if` and `transform`, do not _compose_ easily. `copy_if` writes the
+       retained elements to an output iterator, but `transform` needs a pair of
+       iterators to read the elements to transform from.
+       #+BEGIN_SRC c++
+         template <typename InputIt,
+                   typename Sentinel,
+                   typename OutputIt,
+                   typename Pred,
+                   typename Tran>
+         OutputIt filter_transform(
+             InputIt begin, Sentinel end, OutputIt out, Pred&& pred, Tran&& tran) {
+           std::vector<typename std::iterator_traits<InputIt>::value_type> filtered;
+           std::copy_if(begin, end, std::back_inserter(filtered), FWD(pred));
+           return std::transform(filtered.begin(), filtered.end(), out, FWD(tran));
+         }
+       #+END_SRC
+       What's the problem with this? We have to allocate a temporary vector to
+       hold the intermediate result. We can fix this by making a fancy
+       iterator.
+       #+BEGIN_SRC c++
+         template <typename F>
+         class function_iterator {
+           F f;
+
+          public:
+           function_iterator(F f) : f(std::move(f)) {}
+
+           // Just enough to make *it++ = x work
+           auto& operator*() { return *this; }
+
+           auto& operator++(int) { return *this; }
+
+           template <typename T>
+           void operator=(T&& x) {
+             f(FWD(x));
+           }
+         };
+
+         template <typename InputIt,
+                   typename Sentinel,
+                   typename OutputIt,
+                   typename Pred,
+                   typename Tran>
+         OutputIt filter_transform(
+             InputIt begin, Sentinel end, OutputIt out, Pred&& pred, Tran&& tran) {
+           return std::copy_if(
+               begin,
+               end,
+               function_iterator([&out, &tran](auto&& x) { *out++ = tran(FWD(x)); }),
+               FWD(pred));
+         }
+       #+END_SRC
+        
+       Notice that this kind of side-steps the problem - we're not composing
+       standard algorithms any more because we're not calling `transform`!
+       We've essentially re-implemented `transform` inside an output iterator.
+        
+       Algorithms are just functions, and we've seen functions like this
+       before - the ones returning an error code instead of a result, so we can
+       say something general: functions with output parameters don't compose
+       nicely.
+
+       So, while the standard algorithms are fantastic, and *please* use them,
+       they just don't compose very nicely in some situations. This is one of
+       the things that libraries such as Boost Range and range-v3 seek to fix.
+       
+       Here's how you could write filter_transform using range-v3:
+
+       #+BEGIN_SRC c++
+         #include <range/v3/all.hpp>
+
+         using namespace ranges;
+
+         template <typename InputRange, typename Pred, typename Tran>
+         auto filter_transform(InputRange&& range, Pref&& pred, Tran&& tran) {
+           return FWD(range) | view::filter(FWD(pred)) | view::transform(FWD(tran));
+         }
+       #+END_SRC
+        
+       This is some nice composition! For more details and a much more involved
+       example, please watch Eric Niebler's talk from CppCon 2015. Something
+       like this is in all likelihood coming to the C++ standard and I'm
+       excited.
+     - Lazy ranges improve composability
+** Classes
+   Let's look at some of the ways we combine classes together.
+
+   One way is to have members.
+   - Inheritance is one way to compose classes
+   - What's called "composition" is manual and tedious
+   - Mixins
+
+** Design Patterns
+
+   TODO: find quote about design patterns being unnecessary if your language is
+   good enough
+
+
+
