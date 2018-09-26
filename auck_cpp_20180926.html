@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<title>Surfacing Composition</title>
+<meta name="author" content="(Toby Allsopp)"/>
+<style type="text/css">
+.underline { text-decoration: underline; }
+</style>
+<link rel="stylesheet" href="./reveal.js/css/reveal.css"/>
+
+<link rel="stylesheet" href="./reveal.js/css/theme/moon.css" id="theme"/>
+
+
+<!-- If the query includes 'print-pdf', include the PDF print sheet -->
+<script>
+    if( window.location.search.match( /print-pdf/gi ) ) {
+        var link = document.createElement( 'link' );
+        link.rel = 'stylesheet';
+        link.type = 'text/css';
+        link.href = './reveal.js/css/print/pdf.css';
+        document.getElementsByTagName( 'head' )[0].appendChild( link );
+    }
+</script>
+<script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+</head>
+<body>
+<div class="reveal">
+<div class="slides">
+<section id="sec-title-slide" data-background="" data-background-size="" data-background-position="" data-background-repeat="" data-background-transition=""><h1 class="title">Surfacing Composition</h1><h2 class="author">Toby Allsopp</h2><h2 class="date">2018-09-26</h2><p class="date">Created: 2018-09-26 Wed 17:22</p>
+</section>
+<section>
+<section id="slide-orgfbfa4df" data-background="" data-background-size="" data-background-position="" data-background-repeat="" data-background-transition="">
+<div class="slide-header"></div>
+<h2 id="orgfbfa4df">Pacific++</h2>
+<ul>
+<li class="fragment ">Sydney</li>
+<li class="fragment ">October 18-19</li>
+<li class="fragment ">Tickets still on sale but only until the end of September!</li>
+
+</ul>
+
+<aside class="notes">
+<p>
+This is a preview of some material I'll be presenting at the Pacific++
+conference in Sydney in October. Tickets are still available but only until the
+end of September - that's in 4 days!
+</p>
+
+<p>
+Please interrupt me to ask any questions you have. I'd also be very interested
+in any feedback about the content, but please save that for afterwards.
+</p>
+
+</aside>
+
+<div class="slide-footer"></div>
+</section>
+</section>
+<section>
+<section id="slide-org716d851" data-background="" data-background-size="" data-background-position="" data-background-repeat="" data-background-transition="">
+<div class="slide-header"></div>
+<h2 id="org716d851">Composition</h2>
+<ul>
+<li class="fragment ">closure: for any integers \(x\) and \(y\), \(x + y\) is an integer</li>
+
+</ul>
+
+<aside class="notes">
+<p>
+Composition is a fairly overloaded term in programming. I'm going to talk about
+it in a sense that's both very general and quite specific. I'm going to talk
+about composition as a kind of algebraic structure, meaning we have a set of
+something and one or more operations on elements of that set that result in
+other elements of the set.
+</p>
+
+<p>
+A, hopefully familiar, example is the set of integers and addition - addition is
+an operation that takes two integers and results in a third. No matter which two
+integers you feed into the addition operation, you always get an integer out.
+This property is known as <b>closure</b>.
+</p>
+
+<p>
+In the kind of composition I'm going to talk about, the elements of the set are
+parts of your program, for example expressions, statements or functions, and the
+operations are things that we, as programmers, do to them.
+</p>
+
+</aside>
+
+<div class="slide-footer"></div>
+</section>
+</section>
+<section>
+<section id="slide-org4017a87" data-background="" data-background-size="" data-background-position="" data-background-repeat="" data-background-transition="">
+<div class="slide-header"></div>
+<h2 id="org4017a87">Expressions</h2>
+<aside class="notes">
+<p>
+Expressions in most programming languages, including C++, exhibit rich
+composition. We can start with a relatively small set of primitive expressions
+and compose them together to make an infinite set of possible expressions.
+</p>
+
+</aside>
+
+<div class="slide-footer"></div>
+</section>
+<section id="slide-org24bb82d" data-background="" data-background-size="" data-background-position="" data-background-repeat="" data-background-transition="">
+<div class="slide-header"></div>
+<h3 id="org24bb82d">Primitive Expressions</h3>
+<dl>
+<dt class="fragment ">literal</dt><dd class="fragment ">e.g. <code>3</code> or <code>"Hello"</code></dd>
+<dt class="fragment ">id-expression</dt><dd class="fragment ">e.g. <code>x</code></dd>
+
+</dl>
+
+<div class="slide-footer"></div>
+</section>
+<section id="slide-org11dff76" data-background="" data-background-size="" data-background-position="" data-background-repeat="" data-background-transition="">
+<div class="slide-header"></div>
+<h3 id="org11dff76">Operations on Expressions</h3>
+<dl>
+<dt class="fragment ">parenthesise</dt><dd class="fragment "><code>(x)</code></dd>
+<dt class="fragment ">unary operator</dt><dd class="fragment "><code>-x</code></dd>
+<dt class="fragment ">binary operator</dt><dd class="fragment "><code>x + 4</code></dd>
+<dt class="fragment ">ternary operator</dt><dd class="fragment "><code>x ? 7 : y</code></dd>
+<dt class="fragment ">function call</dt><dd class="fragment "><code>f(x, y)</code></dd>
+
+</dl>
+
+<div class="slide-footer"></div>
+</section>
+<section id="slide-orgad6fd8f" data-background="" data-background-size="" data-background-position="" data-background-repeat="" data-background-transition="">
+<div class="slide-header"></div>
+<h3 id="orgad6fd8f">Restrictions</h3>
+<aside class="notes">
+<p>
+Now, not all combinations of expressions are <span class="underline">legal</span> in C++ - we have to worry
+about types and value categories and what-not.
+</p>
+
+</aside>
+
+<ul>
+<li class="fragment "><code>"Hello"s + 7</code> (no matching overload)</li>
+<li class="fragment "><code>&amp;7</code> (can't take the address of a prvalue)</li>
+<li class="fragment "><code>7(1, 2)</code> (not a function)</li>
+
+</ul>
+
+<p>
+Not every composition yields an expression, but none yield anything <i>other</i>
+than an expression.
+</p>
+
+<div class="slide-footer"></div>
+</section>
+</section>
+<section>
+<section id="slide-org64ae502" data-background="" data-background-size="" data-background-position="" data-background-repeat="" data-background-transition="">
+<div class="slide-header"></div>
+<h2 id="org64ae502">Statements</h2>
+<aside class="notes">
+<p>
+Statements in C++ have much more limited composition possibilities than expressions.
+</p>
+
+</aside>
+
+<div class="slide-footer"></div>
+</section>
+<section id="slide-org4fa2d51" data-background="" data-background-size="" data-background-position="" data-background-repeat="" data-background-transition="">
+<div class="slide-header"></div>
+<h3 id="org4fa2d51">Primitive Statements</h3>
+<dl>
+<dt class="fragment ">expression statement</dt><dd class="fragment ">e.g. <code>x + 4;</code></dd>
+<dt class="fragment ">jump statement</dt><dd class="fragment ">e.g. <code>goto fail;</code><br />
+e.g. <code>return 7;</code></dd>
+<dt class="fragment ">declaration statement</dt><dd class="fragment ">e.g. <code>auto x = 5;</code></dd>
+
+</dl>
+
+<div class="slide-footer"></div>
+</section>
+<section id="slide-org4a77d6f" data-background="" data-background-size="" data-background-position="" data-background-repeat="" data-background-transition="">
+<div class="slide-header"></div>
+<h3 id="org4a77d6f">Composed Statements</h3>
+<dl>
+<dt class="fragment ">compound statement</dt><dd class="fragment "><code>{</code> <i>statement<sub>1</sub></i> &#x2026; <i>statement<sub>n</sub></i> <code>}</code></dd>
+<dt class="fragment ">selection statement</dt><dd class="fragment "><code>if</code> <code>(</code> <i>condition</i> <code>)</code> <i>statement<sub>1</sub></i> <code>else</code> <i>statement<sub>2</sub></i><br />
+<code>switch</code> <code>(</code> <i>condition</i> <code>)</code> <i>statement</i></dd>
+<dt class="fragment ">iteration statement</dt><dd class="fragment "><code>do</code> <i>statement</i> <code>while</code> <code>(</code> <i>condition</i> <code>)</code>;<br />
+<code>while</code> <code>(</code> <i>condition</i> <code>)</code> <i>statement</i><br />
+<code>for</code> <code>(</code> <i>for-stuff</i> <code>)</code> <i>statement</i></dd>
+
+</dl>
+
+<aside class="notes">
+<p>
+This is, so far, composition built into the grammar of the language. There's no
+way to change or extend this - you can't introduce a new kind of expression or
+statement.
+</p>
+
+<p>
+Things get more interesting when we consider functions.
+</p>
+
+</aside>
+
+<div class="slide-footer"></div>
+</section>
+</section>
+<section>
+<section id="slide-orgfac248a" data-background="" data-background-size="" data-background-position="" data-background-repeat="" data-background-transition="">
+<div class="slide-header"></div>
+<h2 id="orgfac248a">Functions</h2>
+<aside class="notes">
+<p>
+Can we combine functions together to make other functions? Of course we can!
+</p>
+
+</aside>
+
+<div class="slide-footer"></div>
+</section>
+<section id="slide-org92e9698" data-background="" data-background-size="" data-background-position="" data-background-repeat="" data-background-transition="">
+<div class="slide-header"></div>
+<h3 id="org92e9698">Manual Function Composition</h3>
+<div class="org-src-container">
+
+<pre  class="src src-c++"><span style="color: #98fb98;">int</span> <span style="color: #87cefa;">f1</span><span style="color: #8c8c8c;">(</span><span style="color: #98fb98;">double</span><span style="color: #8c8c8c;">)</span>;
+<span style="color: #98fb98;">string</span> <span style="color: #87cefa;">f2</span><span style="color: #8c8c8c;">(</span><span style="color: #98fb98;">int</span><span style="color: #8c8c8c;">)</span>;
+
+<span style="color: #98fb98;">string</span> <span style="color: #87cefa;">composed</span><span style="color: #8c8c8c;">(</span><span style="color: #98fb98;">double</span> <span style="color: #eedd82;">x</span><span style="color: #8c8c8c;">)</span> <span style="color: #8c8c8c;">{</span>
+  <span style="color: #00ffff;">return</span> f2<span style="color: #93a8c6;">(</span>f1<span style="color: #b0b1a3;">(</span>x<span style="color: #b0b1a3;">)</span><span style="color: #93a8c6;">)</span>;
+<span style="color: #8c8c8c;">}</span>
+</pre>
+</div>
+
+<div class="slide-footer"></div>
+</section>
+<section id="slide-org42777df" data-background="" data-background-size="" data-background-position="" data-background-repeat="" data-background-transition="">
+<div class="slide-header"></div>
+<h3 id="org42777df">Surfaced Function Composition</h3>
+<p>
+\(\mathtt{compose}(f, g) = \lambda x \rightarrow f(g(x))\)
+</p>
+
+<div class="org-src-container">
+
+<pre  class="fragment "><span style="color: #b0c4de;">#define</span> <span style="color: #87cefa;">FWD</span><span style="color: #8c8c8c;">(</span><span style="color: #eedd82;">x</span><span style="color: #8c8c8c;">)</span> <span style="color: #00ffff;">static_cast</span>&lt;<span style="color: #00ffff;">decltype</span><span style="color: #8c8c8c;">(</span>x<span style="color: #8c8c8c;">)</span>&amp;&amp;&gt;<span style="color: #8c8c8c;">(</span>x<span style="color: #8c8c8c;">)</span>
+
+<span style="color: #00ffff;">template</span> <span style="color: #8c8c8c;">&lt;</span><span style="color: #00ffff;">typename</span> <span style="color: #98fb98;">F</span>, <span style="color: #00ffff;">typename</span> <span style="color: #98fb98;">G</span><span style="color: #8c8c8c;">&gt;</span>
+<span style="color: #00ffff;">auto</span> <span style="color: #87cefa;">compose</span><span style="color: #8c8c8c;">(</span><span style="color: #98fb98;">F</span>&amp;&amp; <span style="color: #eedd82;">f</span>, <span style="color: #98fb98;">G</span>&amp;&amp; <span style="color: #eedd82;">g</span><span style="color: #8c8c8c;">)</span> <span style="color: #8c8c8c;">{</span>
+  <span style="color: #00ffff;">return</span> <span style="color: #93a8c6;">[</span>f = FWD<span style="color: #b0b1a3;">(</span>f<span style="color: #b0b1a3;">)</span>, g = FWD<span style="color: #b0b1a3;">(</span>g<span style="color: #b0b1a3;">)</span><span style="color: #93a8c6;">](</span><span style="color: #00ffff;">auto</span>&amp;&amp; <span style="color: #eedd82;">x</span><span style="color: #93a8c6;">)</span> <span style="color: #93a8c6;">{</span>
+    <span style="color: #00ffff;">return</span> <span style="color: #7fffd4;">std</span>::invoke<span style="color: #b0b1a3;">(</span>f, <span style="color: #7fffd4;">std</span>::invoke<span style="color: #97b098;">(</span>g, FWD<span style="color: #aebed8;">(</span>x<span style="color: #aebed8;">)</span><span style="color: #97b098;">)</span><span style="color: #b0b1a3;">)</span>;
+  <span style="color: #93a8c6;">}</span>;
+<span style="color: #8c8c8c;">}</span>
+</pre>
+</div>
+
+<div class="org-src-container">
+
+<pre  class="fragment "><span style="color: #98fb98;">int</span> <span style="color: #87cefa;">f1</span><span style="color: #8c8c8c;">(</span><span style="color: #98fb98;">double</span><span style="color: #8c8c8c;">)</span>;
+<span style="color: #98fb98;">string</span> <span style="color: #87cefa;">f2</span><span style="color: #8c8c8c;">(</span><span style="color: #98fb98;">int</span><span style="color: #8c8c8c;">)</span>;
+
+<span style="color: #00ffff;">const</span> <span style="color: #00ffff;">auto</span> composed = compose<span style="color: #8c8c8c;">(</span>f2, f1<span style="color: #8c8c8c;">)</span>;
+</pre>
+</div>
+
+<p class="fragment ">
+But is that actually useful?
+</p>
+
+<div class="slide-footer"></div>
+</section>
+<section id="slide-orgb5c22b5" data-background="" data-background-size="" data-background-position="" data-background-repeat="" data-background-transition="">
+<div class="slide-header"></div>
+<h3 id="orgb5c22b5">Manual Function Composition</h3>
+<div class="org-src-container">
+
+<pre  class="src src-c++"><span style="color: #00ffff;">struct</span> <span style="color: #98fb98;">person</span> <span style="color: #8c8c8c;">{</span>
+  <span style="color: #98fb98;">int</span> <span style="color: #eedd82;">age</span>;
+  <span style="color: #98fb98;">string</span> <span style="color: #eedd82;">name</span>;
+<span style="color: #8c8c8c;">}</span>;
+</pre>
+</div>
+
+<div class="org-src-container">
+
+<pre  class="fragment "><span style="color: #98fb98;">bool</span> <span style="color: #87cefa;">any_oldies</span><span style="color: #8c8c8c;">(</span><span style="color: #98fb98;">vector</span><span style="color: #93a8c6;">&lt;</span>person<span style="color: #93a8c6;">&gt;</span> <span style="color: #eedd82;">people</span><span style="color: #8c8c8c;">)</span> <span style="color: #8c8c8c;">{</span>
+  <span style="color: #00ffff;">return</span> any_of<span style="color: #93a8c6;">(</span>begin<span style="color: #b0b1a3;">(</span>people<span style="color: #b0b1a3;">)</span>, end<span style="color: #b0b1a3;">(</span>people<span style="color: #b0b1a3;">)</span>, <span style="color: #b0b1a3;">[](</span><span style="color: #98fb98;">person</span> <span style="color: #eedd82;">p</span><span style="color: #b0b1a3;">)</span> <span style="color: #b0b1a3;">{</span>
+    <span style="color: #00ffff;">return</span> p.age &gt; <span style="color: #7fffd4;">40</span>;
+  <span style="color: #b0b1a3;">}</span><span style="color: #93a8c6;">)</span>;
+<span style="color: #8c8c8c;">}</span>
+</pre>
+</div>
+
+<div class="slide-footer"></div>
+</section>
+<section id="slide-org2a66b60" data-background="" data-background-size="" data-background-position="" data-background-repeat="" data-background-transition="">
+<div class="slide-header"></div>
+<h3 id="org2a66b60">Surfaced Function Composition</h3>
+<div class="org-src-container">
+
+<pre  class="src src-c++"><span style="color: #00ffff;">auto</span> <span style="color: #87cefa;">greater_than</span><span style="color: #8c8c8c;">(</span><span style="color: #98fb98;">int</span> <span style="color: #eedd82;">x</span><span style="color: #8c8c8c;">)</span> <span style="color: #8c8c8c;">{</span>
+  <span style="color: #00ffff;">return</span> <span style="color: #93a8c6;">[</span>x<span style="color: #93a8c6;">](</span><span style="color: #00ffff;">auto</span>&amp;&amp; <span style="color: #eedd82;">y</span><span style="color: #93a8c6;">)</span> <span style="color: #93a8c6;">{</span> <span style="color: #00ffff;">return</span> FWD<span style="color: #b0b1a3;">(</span>y<span style="color: #b0b1a3;">)</span> &gt; x; <span style="color: #93a8c6;">}</span>;
+<span style="color: #8c8c8c;">}</span>
+
+<span style="color: #98fb98;">bool</span> <span style="color: #87cefa;">any_oldies</span><span style="color: #8c8c8c;">(</span><span style="color: #98fb98;">vector</span><span style="color: #93a8c6;">&lt;</span>person<span style="color: #93a8c6;">&gt;</span> <span style="color: #eedd82;">people</span><span style="color: #8c8c8c;">)</span> <span style="color: #8c8c8c;">{</span>
+  <span style="color: #00ffff;">return</span> any_of<span style="color: #93a8c6;">(</span>begin<span style="color: #b0b1a3;">(</span>people<span style="color: #b0b1a3;">)</span>,
+                end<span style="color: #b0b1a3;">(</span>people<span style="color: #b0b1a3;">)</span>,
+                compose<span style="color: #b0b1a3;">(</span>greater_than<span style="color: #97b098;">(</span><span style="color: #7fffd4;">40</span><span style="color: #97b098;">)</span>, &amp;<span style="color: #7fffd4;">person</span>::age<span style="color: #b0b1a3;">)</span><span style="color: #93a8c6;">)</span>;
+<span style="color: #8c8c8c;">}</span>
+</pre>
+</div>
+
+<div class="slide-footer"></div>
+</section>
+<section id="slide-org073fb65" data-background="" data-background-size="" data-background-position="" data-background-repeat="" data-background-transition="">
+<div class="slide-header"></div>
+<h3 id="org073fb65">Surfaced Function Composition</h3>
+<div class="org-src-container">
+
+<pre  class="src src-c++"><span style="color: #00ffff;">const</span> <span style="color: #00ffff;">auto</span> bind_second_arg = <span style="color: #8c8c8c;">[](</span><span style="color: #00ffff;">auto</span>&amp;&amp; <span style="color: #eedd82;">f</span>, <span style="color: #00ffff;">auto</span>&amp;&amp; <span style="color: #eedd82;">arg</span><span style="color: #8c8c8c;">)</span> <span style="color: #8c8c8c;">{</span>
+  <span style="color: #00ffff;">return</span> <span style="color: #93a8c6;">[</span>f = FWD<span style="color: #b0b1a3;">(</span>f<span style="color: #b0b1a3;">)</span>, arg = FWD<span style="color: #b0b1a3;">(</span>arg<span style="color: #b0b1a3;">)</span><span style="color: #93a8c6;">](</span><span style="color: #00ffff;">auto</span>&amp;&amp; <span style="color: #eedd82;">x</span><span style="color: #93a8c6;">)</span> <span style="color: #93a8c6;">{</span>
+    <span style="color: #00ffff;">return</span> <span style="color: #7fffd4;">std</span>::invoke<span style="color: #b0b1a3;">(</span>f, FWD<span style="color: #97b098;">(</span>x<span style="color: #97b098;">)</span>, arg<span style="color: #b0b1a3;">)</span>;
+  <span style="color: #93a8c6;">}</span>;
+<span style="color: #8c8c8c;">}</span>;
+
+<span style="color: #00ffff;">auto</span> <span style="color: #87cefa;">greater_than</span><span style="color: #8c8c8c;">(</span><span style="color: #98fb98;">int</span> <span style="color: #eedd82;">x</span><span style="color: #8c8c8c;">)</span> <span style="color: #8c8c8c;">{</span>
+  <span style="color: #00ffff;">return</span> bind_second_arg<span style="color: #93a8c6;">(</span>greater<span style="color: #b0b1a3;">&lt;&gt;()</span>, x<span style="color: #93a8c6;">)</span>;
+<span style="color: #8c8c8c;">}</span>
+
+<span style="color: #98fb98;">bool</span> <span style="color: #87cefa;">any_oldies</span><span style="color: #8c8c8c;">(</span><span style="color: #98fb98;">vector</span><span style="color: #93a8c6;">&lt;</span>person<span style="color: #93a8c6;">&gt;</span> <span style="color: #eedd82;">people</span><span style="color: #8c8c8c;">)</span> <span style="color: #8c8c8c;">{</span>
+  <span style="color: #00ffff;">return</span> any_of<span style="color: #93a8c6;">(</span>begin<span style="color: #b0b1a3;">(</span>people<span style="color: #b0b1a3;">)</span>,
+                end<span style="color: #b0b1a3;">(</span>people<span style="color: #b0b1a3;">)</span>,
+                compose<span style="color: #b0b1a3;">(</span>greater_than<span style="color: #97b098;">(</span><span style="color: #7fffd4;">40</span><span style="color: #97b098;">)</span>, &amp;<span style="color: #7fffd4;">person</span>::age<span style="color: #b0b1a3;">)</span><span style="color: #93a8c6;">)</span>;
+<span style="color: #8c8c8c;">}</span>
+</pre>
+</div>
+
+<p class="fragment ">
+OK, but is it <i>really</i> useful?
+</p>
+
+<div class="slide-footer"></div>
+</section>
+<section id="slide-orgddf90f5" data-background="" data-background-size="" data-background-position="" data-background-repeat="" data-background-transition="">
+<div class="slide-header"></div>
+<h3 id="orgddf90f5">More Complicated Function Composition</h3>
+<div class="org-src-container">
+
+<pre  class="src src-c++"><span style="color: #98fb98;">void</span> <span style="color: #87cefa;">sort_by_age</span><span style="color: #8c8c8c;">(</span><span style="color: #98fb98;">vector</span><span style="color: #93a8c6;">&lt;</span>person<span style="color: #93a8c6;">&gt;</span>&amp; <span style="color: #eedd82;">people</span><span style="color: #8c8c8c;">)</span> <span style="color: #8c8c8c;">{</span>
+  sort<span style="color: #93a8c6;">(</span>begin<span style="color: #b0b1a3;">(</span>people<span style="color: #b0b1a3;">)</span>,
+       end<span style="color: #b0b1a3;">(</span>people<span style="color: #b0b1a3;">)</span>,
+       <span style="color: #b0b1a3;">[](</span><span style="color: #98fb98;">person</span> <span style="color: #00ffff;">const</span> <span style="color: #00ffff;">auto</span>&amp; p1, <span style="color: #98fb98;">person</span> <span style="color: #00ffff;">const</span> <span style="color: #00ffff;">auto</span>&amp; p2<span style="color: #b0b1a3;">)</span> <span style="color: #b0b1a3;">{</span>
+         <span style="color: #00ffff;">return</span> p1.age &lt; p2.age;
+       <span style="color: #b0b1a3;">}</span><span style="color: #93a8c6;">)</span>;
+<span style="color: #8c8c8c;">}</span>
+</pre>
+</div>
+
+<div class="org-src-container">
+
+<pre  class="fragment "><span style="color: #98fb98;">void</span> <span style="color: #87cefa;">sort_by_name</span><span style="color: #8c8c8c;">(</span><span style="color: #98fb98;">vector</span><span style="color: #93a8c6;">&lt;</span>person<span style="color: #93a8c6;">&gt;</span>&amp; <span style="color: #eedd82;">people</span><span style="color: #8c8c8c;">)</span> <span style="color: #8c8c8c;">{</span>
+  sort<span style="color: #93a8c6;">(</span>begin<span style="color: #b0b1a3;">(</span>people<span style="color: #b0b1a3;">)</span>,
+       end<span style="color: #b0b1a3;">(</span>people<span style="color: #b0b1a3;">)</span>,
+       <span style="color: #b0b1a3;">[](</span><span style="color: #98fb98;">person</span> <span style="color: #00ffff;">const</span> <span style="color: #00ffff;">auto</span>&amp; p1, <span style="color: #98fb98;">person</span> <span style="color: #00ffff;">const</span> <span style="color: #00ffff;">auto</span>&amp; p2<span style="color: #b0b1a3;">)</span> <span style="color: #b0b1a3;">{</span>
+         <span style="color: #00ffff;">return</span> p1.name &lt; p2.name;
+       <span style="color: #b0b1a3;">}</span><span style="color: #93a8c6;">)</span>;
+<span style="color: #8c8c8c;">}</span>
+</pre>
+</div>
+
+
+<div class="slide-footer"></div>
+</section>
+<section id="slide-orgbd4b879" data-background="" data-background-size="" data-background-position="" data-background-repeat="" data-background-transition="">
+<div class="slide-header"></div>
+<h3 id="orgbd4b879">Surfaced Function Composition</h3>
+<p>
+\(\mathtt{on}(f, g) = \lambda x_1, x_2, ... \rightarrow f(g(x_1), g(x_2), ... )\)
+</p>
+
+<div class="org-src-container">
+
+<pre  class="fragment "><span style="color: #00ffff;">template</span> <span style="color: #8c8c8c;">&lt;</span><span style="color: #00ffff;">typename</span> <span style="color: #98fb98;">F</span>, <span style="color: #00ffff;">typename</span> <span style="color: #98fb98;">G</span><span style="color: #8c8c8c;">&gt;</span>
+<span style="color: #00ffff;">auto</span> <span style="color: #87cefa;">on</span><span style="color: #8c8c8c;">(</span><span style="color: #98fb98;">F</span>&amp;&amp; <span style="color: #eedd82;">f</span>, <span style="color: #98fb98;">G</span>&amp;&amp; <span style="color: #eedd82;">g</span><span style="color: #8c8c8c;">)</span> <span style="color: #8c8c8c;">{</span>
+  <span style="color: #00ffff;">return</span> <span style="color: #93a8c6;">[</span>f = FWD<span style="color: #b0b1a3;">(</span>f<span style="color: #b0b1a3;">)</span>, g = FWD<span style="color: #b0b1a3;">(</span>g<span style="color: #b0b1a3;">)</span><span style="color: #93a8c6;">](</span><span style="color: #00ffff;">auto</span>&amp;&amp;... <span style="color: #eedd82;">x</span><span style="color: #93a8c6;">)</span> <span style="color: #93a8c6;">{</span>
+    <span style="color: #00ffff;">return</span> <span style="color: #7fffd4;">std</span>::invoke<span style="color: #b0b1a3;">(</span>f, <span style="color: #7fffd4;">std</span>::invoke<span style="color: #97b098;">(</span>g, FWD<span style="color: #aebed8;">(</span>x<span style="color: #aebed8;">)</span><span style="color: #97b098;">)</span>...<span style="color: #b0b1a3;">)</span>;
+  <span style="color: #93a8c6;">}</span>;
+<span style="color: #8c8c8c;">}</span>
+</pre>
+</div>
+
+<div class="org-src-container">
+
+<pre  class="fragment "><span style="color: #98fb98;">void</span> <span style="color: #87cefa;">sort_by_age</span><span style="color: #8c8c8c;">(</span><span style="color: #98fb98;">vector</span><span style="color: #93a8c6;">&lt;</span>person<span style="color: #93a8c6;">&gt;</span>&amp; <span style="color: #eedd82;">people</span><span style="color: #8c8c8c;">)</span> <span style="color: #8c8c8c;">{</span>
+  sort<span style="color: #93a8c6;">(</span>begin<span style="color: #b0b1a3;">(</span>people<span style="color: #b0b1a3;">)</span>,
+       end<span style="color: #b0b1a3;">(</span>people<span style="color: #b0b1a3;">)</span>,
+       on<span style="color: #b0b1a3;">(</span>less<span style="color: #97b098;">&lt;&gt;()</span>, &amp;<span style="color: #7fffd4;">person</span>::age<span style="color: #b0b1a3;">)</span><span style="color: #93a8c6;">)</span>;
+<span style="color: #8c8c8c;">}</span>
+
+<span style="color: #98fb98;">void</span> <span style="color: #87cefa;">sort_by_name</span><span style="color: #8c8c8c;">(</span><span style="color: #98fb98;">vector</span><span style="color: #93a8c6;">&lt;</span>person<span style="color: #93a8c6;">&gt;</span>&amp; <span style="color: #eedd82;">people</span><span style="color: #8c8c8c;">)</span> <span style="color: #8c8c8c;">{</span>
+  sort<span style="color: #93a8c6;">(</span>begin<span style="color: #b0b1a3;">(</span>people<span style="color: #b0b1a3;">)</span>,
+       end<span style="color: #b0b1a3;">(</span>people<span style="color: #b0b1a3;">)</span>,
+       on<span style="color: #b0b1a3;">(</span>less<span style="color: #97b098;">&lt;&gt;()</span>, &amp;<span style="color: #7fffd4;">person</span>::name<span style="color: #b0b1a3;">)</span><span style="color: #93a8c6;">)</span>;
+<span style="color: #8c8c8c;">}</span>
+</pre>
+</div>
+
+<div class="slide-footer"></div>
+</section>
+</section>
+<section>
+<section id="slide-org777f4b8" data-background="" data-background-size="" data-background-position="" data-background-repeat="" data-background-transition="">
+<div class="slide-header"></div>
+<h2 id="org777f4b8">Questions</h2>
+<p>
+For more, come to Pacific++!
+</p>
+<div class="slide-footer"></div>
+</section>
+</section>
+</div>
+</div>
+<script src="./reveal.js/lib/js/head.min.js"></script>
+<script src="./reveal.js/js/reveal.js"></script>
+
+<script>
+// Full list of configuration options available here:
+// https://github.com/hakimel/reveal.js#configuration
+Reveal.initialize({
+
+controls: true,
+progress: true,
+history: false,
+center: true,
+slideNumber: 'c',
+rollingLinks: false,
+keyboard: true,
+overview: true,
+
+theme: Reveal.getQueryHash().theme, // available themes are in /css/theme
+transition: Reveal.getQueryHash().transition || 'default', // default/cube/page/concave/zoom/linear/fade/none
+transitionSpeed: 'default',
+multiplex: {
+    secret: '', // null if client
+    id: '', // id, obtained from socket.io server
+    url: '' // Location of socket.io server
+},
+
+// Optional libraries used to extend on reveal.js
+dependencies: [
+ { src: './reveal.js/lib/js/classList.js', condition: function() { return !document.body.classList; } },
+ { src: './reveal.js/plugin/markdown/marked.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+ { src: './reveal.js/plugin/markdown/markdown.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+ { src: './reveal.js/plugin/zoom-js/zoom.js', async: true, condition: function() { return !!document.body.classList; } },
+ { src: './reveal.js/plugin/notes/notes.js', async: true, condition: function() { return !!document.body.classList; } }]
+,});
+</script>
+</body>
+</html>
