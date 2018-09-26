@@ -39,7 +39,7 @@
 #+REVEAL_MULTIPLEX_SOCKETIO_URL:
 #+REVEAL_SLIDE_HEADER:
 #+REVEAL_SLIDE_FOOTER:
-#+REVEAL_PLUGINS: (highlight)
+# +REVEAL_PLUGINS: (highlight)
 #+REVEAL_DEFAULT_FRAG_STYLE:
 #+REVEAL_INIT_SCRIPT:
 #+REVEAL_HIGHLIGHT_CSS: %r/lib/css/zenburn.css
@@ -76,7 +76,8 @@ in any feedback about the content, but please save that for afterwards.
 
 * Composition
 
-$\forall x, y \in \mathbb{Z}, x + y \in \mathbb{Z}$
+  #+ATTR_REVEAL: :frag (t)
+  - closure: for any integers $x$ and $y$, $x + y$ is an integer
 
 #+BEGIN_NOTES
 Composition is a fairly overloaded term in programming. I'm going to talk about
@@ -91,8 +92,8 @@ integers you feed into the addition operation, you always get an integer out.
 This property is known as *closure*.
 
 In the kind of composition I'm going to talk about, the elements of the set are
-parts of your program, for example functions or types, and the operations are
-things that we, as programmers, do to them.
+parts of your program, for example expressions, statements or functions, and the
+operations are things that we, as programmers, do to them.
 #+END_NOTES
 
 * Expressions
@@ -142,9 +143,10 @@ than an expression.
 ** Primitive Statements
 
 #+ATTR_REVEAL: :frag (t)
-- expression statement :: ~x + 4;~
-- jump statement :: ~goto fail;~, ~return 7;~
-- declaration statement :: ~auto x = 5;~
+- expression statement :: e.g. ~x + 4;~
+- jump statement :: e.g. ~goto fail;~\\
+                    e.g. ~return 7;~
+- declaration statement :: e.g. ~auto x = 5;~
 
 ** Composed Statements
 
@@ -165,3 +167,157 @@ Things get more interesting when we consider functions.
 #+END_NOTES
 
 * Functions
+
+  #+BEGIN_NOTES
+  Can we combine functions together to make other functions? Of course we can!
+  #+END_NOTES
+  
+** Manual Function Composition
+
+   #+BEGIN_SRC c++
+     int f1(double);
+     string f2(int);
+
+     string composed(double x) {
+       return f2(f1(x));
+     }
+   #+END_SRC
+
+** Surfaced Function Composition
+
+   $\mathtt{compose}(f, g) = \lambda x \rightarrow f(g(x))$
+
+   #+ATTR_REVEAL: :frag t
+   #+BEGIN_SRC c++
+     #define FWD(x) static_cast<decltype(x)&&>(x)
+
+     template <typename F, typename G>
+     auto compose(F&& f, G&& g) {
+       return [f = FWD(f), g = FWD(g)](auto&& x) {
+         return std::invoke(f, std::invoke(g, FWD(x)));
+       };
+     }
+   #+END_SRC
+
+#+ATTR_REVEAL: :frag t
+   #+BEGIN_SRC c++
+     int f1(double);
+     string f2(int);
+
+     const auto composed = compose(f2, f1);
+   #+END_SRC
+
+#+ATTR_REVEAL: :frag t
+   But is that actually useful?
+
+** Manual Function Composition
+
+   #+BEGIN_SRC c++
+     struct person {
+       int age;
+       string name;
+     };
+   #+END_SRC
+   
+   #+ATTR_REVEAL: :frag t
+   #+BEGIN_SRC c++
+     bool any_oldies(vector<person> people) {
+       return any_of(begin(people), end(people), [](person p) {
+         return p.age > 40;
+       });
+     }
+   #+END_SRC
+
+** Surfaced Function Composition
+   
+   #+BEGIN_SRC c++
+     auto greater_than(int x) {
+       return [x](auto&& y) { return FWD(y) > x; };
+     }
+
+     bool any_oldies(vector<person> people) {
+       return any_of(begin(people),
+                     end(people),
+                     compose(greater_than(40), &person::age));
+     }
+   #+END_SRC
+
+** Surfaced Function Composition
+   
+   #+BEGIN_SRC c++
+     const auto bind_second_arg = [](auto&& f, auto&& arg) {
+       return [f = FWD(f), arg = FWD(arg)](auto&& x) {
+         return std::invoke(f, FWD(x), arg);
+       };
+     };
+
+     auto greater_than(int x) {
+       return bind_second_arg(greater<>(), x);
+     }
+
+     bool any_oldies(vector<person> people) {
+       return any_of(begin(people),
+                     end(people),
+                     compose(greater_than(40), &person::age));
+     }
+   #+END_SRC
+
+#+ATTR_REVEAL: :frag t
+   OK, but is it /really/ useful?
+
+** More Complicated Function Composition
+
+   #+BEGIN_SRC c++
+     void sort_by_age(vector<person>& people) {
+       sort(begin(people),
+            end(people),
+            [](person const auto& p1, person const auto& p2) {
+              return p1.age < p2.age;
+            });
+     }
+   #+END_SRC
+   
+   #+ATTR_REVEAL: :frag t
+   #+BEGIN_SRC c++
+     void sort_by_name(vector<person>& people) {
+       sort(begin(people),
+            end(people),
+            [](person const auto& p1, person const auto& p2) {
+              return p1.name < p2.name;
+            });
+     }
+   #+END_SRC
+
+   
+** Surfaced Function Composition
+
+   $\mathtt{on}(f, g) = \lambda x_1, x_2, ... \rightarrow f(g(x_1), g(x_2), ... )$
+
+   #+ATTR_REVEAL: :frag t
+   #+BEGIN_SRC c++
+     template <typename F, typename G>
+     auto on(F&& f, G&& g) {
+       return [f = FWD(f), g = FWD(g)](auto&&... x) {
+         return std::invoke(f, std::invoke(g, FWD(x))...);
+       };
+     }
+   #+END_SRC
+
+   #+ATTR_REVEAL: :frag t
+   #+BEGIN_SRC c++
+     void sort_by_age(vector<person>& people) {
+       sort(begin(people),
+            end(people),
+            on(less<>(), &person::age));
+     }
+
+     void sort_by_name(vector<person>& people) {
+       sort(begin(people),
+            end(people),
+            on(less<>(), &person::name));
+     }
+   #+END_SRC
+   
+* Questions
+
+For more, come to Pacific++!
