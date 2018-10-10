@@ -1,7 +1,17 @@
-
+---
+theme: night
+highlightTheme: github
+revealOptions:
+    transition: none
+    controls: false
+    slideNumber: 'c'
+    width: '100%'
+    margin: 0
+---
+<!-- class: center middle -->
 # Surfacing Composition
 
-Toby Allsopp<br/>
+### Toby Allsopp
 WhereScape Software Limited
 
 `toby@mi6.gen.nz`<br/>
@@ -14,7 +24,7 @@ until the end and we'll see how much time is left.
 
 # Composition
 
--   closure: for any integers \(x\) and \(y\), \(x + y\) is an integer
+<p class="fragment">*closure*: for any integers $x$ and $y$, $x + y$ is an integer</p>
 
 Notes: Composition is a fairly overloaded term in programming. I'm going to talk
 about it in a sense that's both very general and quite specific. I'm going to
@@ -107,7 +117,7 @@ expressions.
 
 # Types
 
-???
+Note:
 
 ---
 
@@ -123,7 +133,7 @@ expressions.
 - `union` - sum
 - `enum class` - "copy"
 
-???
+Note:
 That's about it for ways to define new types in C++.
 
 ---
@@ -162,17 +172,13 @@ string composed(double x) {
 
 $\mathtt{compose}(f, g) = \lambda x \rightarrow f(g(x))$
 
-```haskell
-f . g = \x -> f (g x)
-```
-
-```c++
+<pre class="fragment"><code class="c++" data-trim data-noescape>
 const auto compose = [](auto f, auto g) {
   return [=](auto x) {
-    return std::invoke(f, std::invoke(g, x));
+    return <span class="fragment highlight-current-green">std::invoke(</span>f, std::invoke(g, x));
   };
 };
-```
+</code></pre>
 
 ```c++
 int f1(double);
@@ -180,8 +186,10 @@ string f2(int);
 
 const auto composed = compose(f2, f1);
 ```
+<!-- .element: class="fragment" -->
 
 But is that actually useful?
+<!-- .element: class="fragment" -->
 
 ---
 
@@ -196,8 +204,7 @@ struct person {
 
 ```c++
 bool any_wise_ones(std::vector<person> people) {
-  return std::any_of(begin(people),
-                     end(people),
+  return std::any_of(begin(people), end(people),
                      [](person p) { return p.age > 40; });
 }
 ```
@@ -207,12 +214,11 @@ bool any_wise_ones(std::vector<person> people) {
 
 ```c++
 auto greater_than(int x) {
-  return [x](auto y) { return y > x; };
+  return [=](auto y) { return y > x; };
 }
 
 bool any_wise_ones(std::vector<person> people) {
-  return std::any_of(begin(people),
-                     end(people),
+  return std::any_of(begin(people), end(people),
                      compose(greater_than(40), &person::age));
 }
 ```
@@ -233,13 +239,12 @@ auto greater_than(int x) {
 }
 
 bool any_wise_ones(std::vector<person> people) {
-  return std::any_of(begin(people),
-                     end(people),
+  return std::any_of(begin(people), end(people),
                      compose(greater_than(40), &person::age));
 }
 ```
 
-OK, but is it *really* useful?
+<p class="fragment">OK, but is it *really* useful?</p>
 
 ---
 
@@ -247,24 +252,22 @@ OK, but is it *really* useful?
 
 ```c++
 void sort_by_age(std::vector<person>& people) {
-  std::sort(begin(people),
-            end(people),
+  std::sort(begin(people), end(people),
             [](person p1, person p2) {
               return p1.age < p2.age;
             });
 }
 ```
 
---
 ```c++
 void sort_by_name(std::vector<person>& people) {
-  std::sort(begin(people),
-            end(people),
+  std::sort(begin(people), end(people),
             [](person p1, person p2) {
               return p1.name < p2.name;
             });
 }
 ```
+<!-- .element: class="fragment" -->
 
 ---
 
@@ -279,23 +282,21 @@ const auto on(auto f, auto g) {
   };
 }
 ```
+<!-- .element: class="fragment" -->
 
 ```c++
 void sort_by_age(std::vector<person>& people) {
-  std::sort(begin(people),
-            end(people),
+  std::sort(begin(people), end(people),
             on(std::less(), &person::age));
 }
 
 void sort_by_name(std::vector<person>& people) {
-  std::sort(begin(people),
-            end(people),
+  std::sort(begin(people), end(people),
             on(std::less(), &person::name));
 }
 ```
 
 ---
-class: center
 
 # Thank you!
 
