@@ -1,6 +1,6 @@
 ---
-theme: night
-highlightTheme: github
+theme: simple
+highlightTheme: idea
 revealOptions:
     transition: none
     controls: false
@@ -173,7 +173,7 @@ string composed(double x) {
 $\mathtt{compose}(f, g) = \lambda x \rightarrow f(g(x))$
 
 <pre class="fragment"><code class="c++" data-trim data-noescape>
-const auto compose = [](auto f, auto g) {
+inline constexpr auto compose = [](auto f, auto g) {
   return [=](auto x) {
     return <span class="fragment highlight-current-green">std::invoke(</span>f, std::invoke(g, x));
   };
@@ -184,9 +184,19 @@ const auto compose = [](auto f, auto g) {
 int f1(double);
 string f2(int);
 
-const auto composed = compose(f2, f1);
+string composed(double x) {
+  return f2(f1(x));
+}
 ```
-<!-- .element: class="fragment" -->
+<!-- .element: style="float:left; width: fit-content;" -->
+
+```c++
+int f1(double);
+string f2(int);
+
+inline constexpr auto composed = compose(f2, f1);
+```
+<!-- .element: class="fragment" style="float:right; width: fit-content;" -->
 
 But is that actually useful?
 <!-- .element: class="fragment" -->
@@ -293,6 +303,79 @@ void sort_by_age(std::vector<person>& people) {
 void sort_by_name(std::vector<person>& people) {
   std::sort(begin(people), end(people),
             on(std::less(), &person::name));
+}
+```
+
+Notes: This is a generalisation of `compose`
+
+---
+
+## More Difficult Composition
+
+<pre style="float:left; width: fit-content"><code class="c++" data-noescape data-trim>
+struct person {
+  std::optional&lt;date> dob;
+  std::string name;
+};
+<span class="fragment">
+int dob_to_age(date dob) {
+  return today() - dob;
+}</span>
+<span class="fragment">
+std::optional&lt;int>
+person_age(person p) {
+<mark>  if (!p.dob) return std::nullopt;
+  return dob_to_age(*p.dob);</mark>
+}
+</span>
+</code></pre>
+
+<!-- style="float: left; width: fit-content;" -->
+
+<pre style="float:right; width: fit-content"><code class="c++" data-noescape data-trim>
+<span class="fragment">
+bool is_age_wise(int age) { return age > 40; }</span>
+<span class="fragment">
+std::optional&lt;bool> is_person_wise(person p) {
+  const auto age = person_age(p);
+<mark>  if (!age) return std::nullopt;
+  return is_age_wise(*age);</mark>
+}</span>
+<span class="fragment">
+bool any_known_wise_ones(std::vector&lt;person> people) {
+  return std::any_of(begin(people), end(people),
+                     [](person p) {
+                       return is_person_wise().value_or(false);
+                     });
+}</span>
+</code></pre>
+
+---
+
+## Composing `std::optional`
+
+```c++
+const auto compose_optional = [](auto f, auto g) {
+  return [=](auto x) -> std::optional<decltype(std::invoke(f, *std::invoke(g, x)))> {
+    const auto o = std::invoke(g, x);
+    if (!o) return std::nullopt;
+    return std::invoke(f, *o);
+  };
+};
+```
+
+```c++
+const auto person_age = compose_optional(dob_to_age, &person::dob);
+
+const auto is_person_wise = compose_optional(is_age_wise, person_age);
+
+const auto value_or = [](auto x) {
+  return [=](auto o) { return o.value_or(x); };
+};
+
+bool any_known_wise_ones(std::vector&lt;person> people) {
+  return std::any_of(begin(people), end(people),
+                     compose(value_or(false), is_person_wise));
 }
 ```
 
