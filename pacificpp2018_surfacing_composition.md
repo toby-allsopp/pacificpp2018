@@ -3,12 +3,14 @@ theme: simple
 highlightTheme: idea
 revealOptions:
     transition: none
+    transitionSpeed: fast
     controls: false
     slideNumber: 'c'
     width: '100%'
     margin: 0
+    center: false
 ---
-<!-- class: center middle -->
+<!-- .slide: class="center" -->
 # Surfacing Composition
 
 ### Toby Allsopp
@@ -21,6 +23,7 @@ Notes: Please feel free to interrupt me to ask any questions you have, or wait
 until the end and we'll see how much time is left.
 
 ---
+<!-- .slide: class="center" -->
 
 # Composition
 
@@ -42,6 +45,7 @@ parts of your program, for example expressions, statements or functions, and the
 operations are things that we, as programmers, do to them.
 
 ---
+<!-- .slide: class="center" -->
 
 # Expressions
 
@@ -80,6 +84,7 @@ Notes: Now, not all combinations of expressions are _legal_ in C++ - we have to
 worry about types and value categories and what-not.
 
 ---
+<!-- .slide: class="center" -->
 
 # Statements
 
@@ -114,6 +119,7 @@ expressions.
   - `for` `(` *for-stuff* `)` *statement*
 
 ---
+<!-- .slide: class="center" -->
 
 # Types
 
@@ -146,6 +152,7 @@ Things get more interesting when we consider functions.
 
 
 ---
+<!-- .slide: class="center" -->
 
 # Functions
 
@@ -158,11 +165,17 @@ Can we combine functions together to make other functions? Of course we can!
 ## Manual Function Composition
 
 ```c++
-int f1(double);
-string f2(int);
+struct person {
+  year_month_day dob;
+  std::string name;
+};
 
-string composed(double x) {
-  return f2(f1(x));
+int dob_to_age(date dob) {
+  return floor<years>(system_clock::now() - dob).count();
+}
+
+int person_age(person p) {
+  return dob_to_age(p.dob);
 }
 ```
 
@@ -170,33 +183,38 @@ string composed(double x) {
 
 ## Surfaced Function Composition
 
-$\mathtt{compose}(f, g) = \lambda x \rightarrow f(g(x))$
+$\mathtt{compose}(f, g) = \lambda (x) \rightarrow f(g(x))$
 
 <pre class="fragment"><code class="c++" data-trim data-noescape>
-inline constexpr auto compose = [](auto f, auto g) {
+template &lt;typename F, typename G>
+auto compose(F f, G g) {
   return [=](auto x) {
     return <span class="fragment highlight-current-green">std::invoke(</span>f, std::invoke(g, x));
   };
 };
 </code></pre>
 
-```c++
-int f1(double);
-string f2(int);
-
-string composed(double x) {
-  return f2(f1(x));
+<table width="90%">
+<tr>
+<td>
+<pre class="fragment"><code class="c++" data-trim data-noescape>
+int person_age(person p) {
+  return dob_to_age(p.dob);
 }
-```
-<!-- .element: style="float:left; width: fit-content;" -->
+</code></pre>
+</td><td>
+<pre class="fragment"><code class="c++" data-trim data-noescape>
+int person_age(person p) {
+  return compose(dob_to_age, &person::dob)(p);
+}
+</code></pre>
+</td>
+</tr>
+</table>
 
-```c++
-int f1(double);
-string f2(int);
-
-inline constexpr auto composed = compose(f2, f1);
-```
-<!-- .element: class="fragment" style="float:right; width: fit-content;" -->
+<pre class="fragment"><code class="c++" data-trim data-noescape>
+<span class="fragment strike">inline constexpr auto person_age = compose(dob_to_age, &person::dob);</span>
+</code></pre>
 
 But is that actually useful?
 <!-- .element: class="fragment" -->
@@ -207,15 +225,16 @@ But is that actually useful?
 
 ```c++
 struct person {
-  int age;
+  year_month_day dob;
   std::string name;
 };
+int person_age(person p);
 ```
 
 ```c++
 bool any_wise_ones(std::vector<person> people) {
   return std::any_of(begin(people), end(people),
-                     [](person p) { return p.age > 40; });
+                     [](person p) { return person_age(p) > 40; });
 }
 ```
 ---
@@ -229,7 +248,7 @@ auto greater_than(int x) {
 
 bool any_wise_ones(std::vector<person> people) {
   return std::any_of(begin(people), end(people),
-                     compose(greater_than(40), &person::age));
+                     compose(greater_than(40), person_age));
 }
 ```
 
@@ -237,20 +256,16 @@ bool any_wise_ones(std::vector<person> people) {
 
 ## Surfaced Function Composition
 
-```c++
-const auto bind_second_arg = [](auto f, auto arg) {
-  return [=](auto x) {
-    return std::invoke(f, x, arg);
-  };
-};
+$\mathtt{partial}(f, x) = \lambda (x_1, \dots) \rightarrow f(x, x_1, \dots)$
 
+```c++
 auto greater_than(int x) {
-  return bind_second_arg(std::greater(), x);
+  return std::bind(std::greater(), _1, x);
 }
 
 bool any_wise_ones(std::vector<person> people) {
   return std::any_of(begin(people), end(people),
-                     compose(greater_than(40), &person::age));
+                     compose(greater_than(40), person_age));
 }
 ```
 
@@ -283,10 +298,11 @@ void sort_by_name(std::vector<person>& people) {
 
 ## Surfaced Function Composition
 
-$\mathtt{on}(f, g) = \lambda x_1, x_2, ... \rightarrow f(g(x_1), g(x_2), ... )$
+$\mathtt{on}(f, g) = \lambda (x_1, x_2, \dots) \rightarrow f(g(x_1), g(x_2), \dots)$
 
 ```c++
-const auto on(auto f, auto g) {
+template <typename F, typename G>
+auto on(F f, G g) {
   return [=](auto... x) {
     return std::invoke(f, std::invoke(g, x)...);
   };
@@ -305,8 +321,21 @@ void sort_by_name(std::vector<person>& people) {
             on(std::less(), &person::name));
 }
 ```
+<!-- .element: class="fragment" -->
 
 Notes: This is a generalisation of `compose`
+
+---
+$\mathtt{compose}(f, g) = \lambda (x) \rightarrow f(g(x))$
+
+
+$$\mathtt{on}(f, g) = \lambda (x_1, x_2, \dots) \rightarrow f(g(x_1), g(x_2), \dots)$$
+
+\begin{align}
+  \mathtt{on}(f) &= f \\\\
+  \mathtt{on}(f, g) &= \lambda (x_1, x_2, \dots) \rightarrow f(g(x_1), g(x_2), \dots) \\\\
+  \mathtt{on}(f_1, f_2, \dots, f_n) &= \lambda (x_1, x_2, \dots) \rightarrow f(f_n(x_1), g(x_2), \dots)
+\end{align}
 
 ---
 
@@ -380,6 +409,7 @@ bool any_known_wise_ones(std::vector&lt;person> people) {
 ```
 
 ---
+<!-- .slide: class="center" -->
 
 # Thank you!
 
