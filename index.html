@@ -1,0 +1,637 @@
+<!doctype html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+  <title>Surfacing Composition</title>
+
+  <link rel="stylesheet" href="css/reveal.css">
+  <link rel="stylesheet" href="css/theme/simple.css">
+
+  <style>
+   .reveal pre { width: 100%; }
+
+   /* reveal-code-focus */
+   .line { display: block; }
+   .line.focus { background: yellow; }
+
+   /* multi-column */
+   .multiCol {
+     display: table;
+     table-layout: fixed;
+     width: 100%;
+     margin-left: 10%;
+     margin-right: 5%;
+     text-align: left;
+   }
+   .multiCol .col {
+     display: table-cell;
+     vertical-align: top;
+     width: 45%;
+     padding: 2% 1% 2% 1%;
+   }
+   .multiCol .col:first-of-type {
+     padding-left: 0;
+   }
+   .multiCol .col:last-of-type {
+     padding-right: 0;
+   }
+
+   /* definition lists */
+   .reveal table.nolines th,td {
+     border-bottom: none !important;
+   }
+  </style>
+
+  <!-- Theme used for syntax highlighting of code -->
+  <link rel="stylesheet" href="highlightjs/styles/github.css">
+
+  <!-- Printing and PDF exports -->
+  <script>
+    var link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.type = 'text/css';
+    link.href = window.location.search.match(/print-pdf/gi) ? 'css/print/pdf.css' : 'css/print/paper.css';
+    document.getElementsByTagName('head')[0].appendChild(link);
+  </script>
+</head>
+
+<body>
+  <div class="reveal">
+    <div class="slides">
+      <section class="center">
+        <h1>Surfacing<br />Composition</h1>
+
+        <h3>Toby Allsopp</h3>
+        <p>
+          <a href="https://www.wherescape.com">WhereScape Software</a>
+        </p>
+
+        <p>
+          <a href="mailto:toby@mi6.gen.nz>">toby@mi6.gen.nz</a><br />
+          Twitter: <a href="https://twitter.com/toby_allsopp">@toby_allsopp</a>
+        </p>
+
+        <aside class="notes">Please feel free to interrupt me to ask any questions you
+          have, or wait until the end and we'll see how much time is left.</aside>
+
+      </section>
+      <section class="center">
+
+        <h1>Composition</h1>
+
+        <p class="fragment" data-markdown>*closure*: for any integers $x$ and $y$, $x + y$ is an integer</p>
+
+        <aside class="notes">Composition is a fairly overloaded term in programming. I'm going to talk
+          about it in a sense that's both very general and quite specific. I'm going to
+          talk about composition as a kind of algebraic structure, meaning we have a set
+          of something and one or more operations on elements of that set that result in
+          other elements of the set.
+
+          A, hopefully familiar, example is the set of integers and addition - addition is
+          an operation that takes two integers and results in a third. No matter which two
+          integers you feed into the addition operation, you always get an integer out.
+          This property is known as **closure**.
+
+          In the kind of composition I'm going to talk about, the elements of the set are
+          parts of your program, for example expressions, statements or functions, and the
+          operations are things that we, as programmers, do to them.
+
+      </section>
+      <section class="center">
+
+        <h1>Expressions</h1>
+
+        <aside class="notes">Expressions in most programming languages, including C++, exhibit rich
+          composition. We can start with a relatively small set of primitive expressions
+          and compose them together to make an infinite set of possible expressions.
+        </aside>
+
+
+      </section>
+      <section>
+
+        <h2>Primitive Expressions</h2>
+
+        <table class="nolines">
+          <tr class="fragment"><td>literal</td>
+            <td><code>3</code> or <code>"Hello"</code></td>
+          </tr>
+          <tr class="fragment">
+            <td>id-expression</td>
+            <td><code>x</code></td>
+          </tr>
+        </table>
+      </section>
+
+      <section>
+        <h2>Operations on Expressions</h2>
+
+        <table class="nolines">
+          <tr class="fragment"><td>parenthesise</td>
+            <td><code>(x)</code></td></tr>
+          <tr class="fragment"><td>unary operator</td>
+            <td><code>-x</code></td></tr>
+          <tr class="fragment"><td>binary operator</td>
+            <td><code>x + 4</code></td></tr>
+          <tr class="fragment"><td>ternary operator</td>
+            <td><code>x ? 7 : y</code></td></tr>
+          <tr class="fragment"><td>function call</td>
+            <td><code>f(x, y)</code></td></tr>
+        </table>
+
+      </section>
+      <section>
+
+        <h2>Restrictions</h2>
+
+        <table class="nolines">
+          <tr><td><code>"Hello"s + 7</code></td><td>(no matching overload)</td></tr>
+          <tr><td><code>&7</code></td><td>(can't take the address of a prvalue)</td></tr>
+          <tr><td><code>7(1, 2)</code></td><td>(not a function)</td></tr>
+        </table>
+
+        <p>
+          Not every composition yields an expression, but none yield anything <em>other</em> than
+          an expression.
+        </p>
+
+        <aside class="notes">Now, not all combinations of expressions are _legal_ in C++ - we have to
+          worry about types and value categories and what-not.
+        </aside>
+
+      </section>
+      <section class="center">
+
+        <h1>Statements</h1>
+
+        <aside class="notes">Statements in C++ have much more limited composition possibilities than
+          expressions.
+        </aside>
+
+
+      </section>
+      <section>
+
+        <h2>Primitive Statements</h2>
+
+        <table class="nolines">
+          <tr>
+            <th>
+              expression statement
+            </th>
+            <td>
+              <code>x + 4;</code>
+            </td>
+          </tr>
+          <tr>
+            <th>
+              jump statement
+            </th>
+            <td>
+              <code>goto fail;</code><br/>
+              <code>return 7;</code>
+            </td>
+          </tr>
+          <tr>
+            <th>
+              declaration statement
+            </th>
+            <td>
+              <code>auto x = 5;</code>
+            </td>
+          </tr>
+        </table>
+
+      </section>
+      <section>
+
+        <h2>Composed Statements</h2>
+
+        <table class="nolines">
+          <tr>
+            <th>
+              compound statement
+            </th>
+            <td>
+              <code>{</code> <em>statement<sub>1</sub></em> &#x2026; <em>statement<sub>n</sub></em> <code>}</code>
+            </td>
+          </tr>
+          <tr>
+            <th>
+              selection statement
+            </th>
+            <td>
+              <code>if</code> <code>(</code> <em>condition </em> <code>)</code> <em>statement<sub>1</sub></em><code> else </code><em>statement<sub>2</sub></em><br/>
+              <code>switch</code> <code>(</code> <em>condition</em> <code>)</code> <em>statement</em>
+            </td>
+          </tr>
+          <tr>
+            <th>
+              iteration statement
+            </th>
+            <td>
+              <code>do </code> <em>statement</em><code> while</code> <code>(</code> <em>condition</em> <code>);</code><br/>
+              <code>while</code> <code>(</code> <em>condition</em> <code>)</code> <em>statement</em><br/>
+              <code>for</code> <code>(</code> <em>for-stuff</em> <code>)</code> <em>statement</em>
+            </td>
+          </tr>
+        </table>
+
+      </section>
+      <section class="center">
+
+        <h1>Types</h1>
+
+        Note:
+
+      </section>
+      <section>
+
+        <h2>Built-in Types</h2>
+
+        - <code>char</code>
+        - <code>int</code>
+        - <code>double</code>
+
+        <h2>Compound Types</h2>
+
+        - <code>struct</code> - product
+        - <code>union</code> - sum
+        - <code>enum class</code> - "copy"
+
+        Note:
+        That's about it for ways to define new types in C++.
+
+      </section>
+      <section>
+
+        <aside class="notes">This is, so far, composition built into the grammar of the language.
+          There's no way to change or extend this - you can't introduce a new kind of
+          expression or statement.
+
+          Things get more interesting when we consider functions.
+        </aside>
+
+
+      </section>
+      <section class="center">
+
+        <h1>Functions</h1>
+
+        Notes:
+        Can we combine functions together to make other functions? Of course we can!
+
+
+      </section>
+      <section>
+
+        <h2>Manual Function Composition</h2>
+
+        <pre><code class="c++" data-trim>
+struct person {
+  year_month_day dob;
+  std::string name;
+};
+
+int dob_to_age(date dob) {
+  return floor<years>(system_clock::now() - dob).count();
+}
+
+int person_age(person p) {
+  return dob_to_age(p.dob);
+}
+        </code></pre>
+
+      </section>
+      <section>
+
+        <h2>Surfaced Function Composition</h2>
+
+        $\mathtt{compose}(f, g) = \lambda (x) \rightarrow f(g(x))$
+
+        <pre class="fragment"><code class="c++" data-trim data-noescape>
+template &lt;typename F, typename G>
+auto compose(F f, G g) {
+  return [=](auto x) {
+    return <span class="fragment highlight-current-green">std::invoke(</span>f, std::invoke(g, x));
+  };
+};
+            </code></pre>
+
+        <table width="90%">
+          <tr>
+            <td>
+              <pre class="fragment"><code class="c++" data-trim data-noescape>
+int person_age(person p) {
+  return dob_to_age(p.dob);
+}
+                  </code></pre>
+            </td>
+            <td>
+              <pre class="fragment"><code class="c++" data-trim data-noescape>
+int person_age(person p) {
+  return compose(dob_to_age, &person::dob)(p);
+}
+                  </code></pre>
+            </td>
+          </tr>
+        </table>
+
+        <pre class="fragment"><code class="c++" data-trim data-noescape>
+              <span class="fragment strike">inline constexpr auto person_age = compose(dob_to_age, &person::dob);</span>
+            </code></pre>
+
+        <p class="fragment">
+          But is that actually useful?
+        </p>
+
+      </section>
+      <section>
+
+        <h2>Manual Function Composition</h2>
+
+        <pre><code class="c++" data-trim>
+struct person {
+  year_month_day dob;
+  std::string name;
+};
+int person_age(person p);
+            </code></pre>
+
+        <pre><code class="c++" data-trim>
+bool any_wise_ones(std::vector&lt;person> people) {
+  return std::any_of(begin(people), end(people),
+                      [](person p) { return person_age(p) > 40; });
+}
+            </code></pre>
+      </section>
+      <section>
+
+        <h2>Surfaced Function Composition</h2>
+
+        <pre><code class="c++" data-trim>
+auto greater_than(int x) {
+  return [=](auto y) { return y > x; };
+}
+
+bool any_wise_ones(std::vector&lt;person> people) {
+  return std::any_of(begin(people), end(people),
+                      compose(greater_than(40), person_age));
+}
+        </code></pre>
+
+      </section>
+      <section>
+
+        <h2>Surfaced Function Composition</h2>
+
+        $$\mathtt{partial}(f, x) = \lambda (x_1, \dots) \rightarrow f(x, x_1, \dots)$$
+
+        <pre><code class="c++" data-trim>
+auto greater_than(int x) {
+  return std::bind(std::greater(), _1, x);
+}
+
+bool any_wise_ones(std::vector&lt;person> people) {
+  return std::any_of(begin(people), end(people),
+                    compose(greater_than(40), person_age));
+}
+        </code></pre>
+
+        <p class="fragment">OK, but is it <em>really</em> useful?</p>
+
+      </section>
+      <section>
+
+        <h2>More Complicated Function Composition</h2>
+
+        <pre><code class="c++" data-trim>
+void sort_by_age(std::vector&lt;person>& people) {
+  std::sort(begin(people), end(people),
+            [](person p1, person p2) { return person_age(p1) < person_age(p2); });
+}
+        </code></pre>
+
+        <pre><code class="c++" data-trim>
+void sort_by_name(std::vector&lt;person>& people) {
+  std::sort(begin(people), end(people),
+            [](person p1, person p2) { return p1.name < p2.name; });
+}
+        </code></pre>
+
+      </section>
+      <section>
+
+        <h2>Surfaced Function Composition</h2>
+
+        $$\mathtt{on}(f, g) = \lambda (x_1, x_2, \dots) \rightarrow f(g(x_1), g(x_2), \dots)$$
+
+        <pre class="fragment"><code class="c++" data-trim>
+template &lt;typename F, typename G>
+auto on(F f, G g) {
+  return [=](auto... x) {
+    return std::invoke(f, std::invoke(g, x)...);
+  };
+}
+        </code></pre>
+
+        <pre class="fragment"><code class="c++" data-trim>
+void sort_by_age(std::vector&lt;person>& people) {
+  std::sort(begin(people), end(people),
+            on(std::less(), person_age));
+}
+
+void sort_by_name(std::vector&lt;person>& people) {
+  std::sort(begin(people), end(people),
+            on(std::less(), &person::name));
+}
+        </code></pre>
+
+        <aside class="notes">This is a generalisation of <code>compose</code>
+        </aside>
+
+      </section>
+      <section>
+        <h2><code>compose</code> and <code>on</code> Compared</h2>
+        <div>
+          \begin{alignat}{4}
+          \mathtt{compose}(f, g) &= \lambda (x) & &\rightarrow f(g(x)) \\
+          \mathtt{on}(f, g) &= \lambda (x_1, x_2, \dots) & &\rightarrow f(g(x_1), g(x_2), \dots)
+          \end{alignat}
+        </div>
+      </section>
+
+      <section>
+        <h2>More Difficult Composition</h2>
+
+        <div class="multiCol" >
+          <div class="col" style="width: 30%">
+          <pre><code class="c++" data-noescape data-trim>
+struct person {
+  std::optional&lt;date> dob;
+  std::string name;
+};
+
+int dob_to_age(date dob) {
+  return today() - dob;
+}
+
+std::optional&lt;int>
+person_age(person p) {
+  if (!p.dob) return std::nullopt;
+  return dob_to_age(*p.dob);
+}
+          </code></pre>
+        </div>
+
+        <div class="col" >
+          <pre><code class="c++" data-noescape data-trim>
+bool is_age_wise(int age) { return age > 40; }
+
+std::optional&lt;bool> is_person_wise(person p) {
+  const auto age = person_age(p);
+  if (!age) return std::nullopt;
+    return is_age_wise(*age);
+}
+
+bool any_known_wise_ones(std::vector&lt;person> people) {
+  return std::any_of(
+    begin(people), end(people),
+    [](person p) {
+      return is_person_wise().value_or(false);
+    });
+}
+          </code></pre>
+        </div>
+        </div>
+
+        <div style="display: none">
+          <span class="fragment" data-fragment-index="1" data-code-block="1" data-code-focus="1-4" >Hello</span>
+          <span class="fragment" data-fragment-index="2" data-code-block="1" data-code-focus="6-8" >Hello</span>
+          <span class="fragment" data-fragment-index="3" data-code-block="1" data-code-focus="10-14" >Hello</span>
+          <span class="fragment" data-fragment-index="4" data-code-block="2" data-code-focus="1" >Hello</span>
+          <span class="fragment" data-fragment-index="5" data-code-block="2" data-code-focus="3-7" >Hello</span>
+          <span class="fragment" data-fragment-index="6" data-code-block="2" data-code-focus="9-15" >Hello</span>
+        </div>
+
+        <p class="fragment" data-fragment-index="10" data-code-block="1" data-code-focus="12-13">
+          <span class="fragment" data-fragment-index="10" data-code-block="2" data-code-focus="5-6">
+            Notice anything?
+          </span>
+        </p>
+      </section>
+      <section>
+
+        <h2>Composing with <code>std::optional</code></h2>
+
+        <pre><code class="c++" data-trim data-escape>
+template &lt;typename F, typename G>
+auto compose_optional(auto f, auto g) {
+  return [=](auto x) -> std::optional&lt;decltype(std::invoke(f, *std::invoke(g, x)))> {
+    const auto o = std::invoke(g, x);
+    if (!o) return std::nullopt;
+    return std::invoke(f, *o);
+  };
+}
+        </code></pre>
+
+        <div class="multiCol" >
+          <div class="col">
+            <pre><code class="c++" data-trim>
+auto person_age(person p) -> optional&lt;int> {
+  if (!p.dob) return std::nullopt;
+  return dob_to_age(*p.dob);
+}
+
+auto is_person_wise(person p) -> optional&lt;bool> {
+  const auto age = person_age(p);
+  if (!age) return std::nullopt;
+  return is_age_wise(*age);
+}
+            </code></pre>
+          </div>
+          <div class="col" >
+            <pre><code class="c++" data-trim>
+auto person_age(person p) -> optional&lt;int> {
+  return compose_optional(dob_to_age,
+                          &person::dob)(p);
+}
+
+auto is_person_wise(person p) -> optional&lt;bool> {
+  return compose_optional(is_age_wise,
+                          person_age)(p);
+}
+            </code></pre>
+          </div>
+        </div>
+
+      </section>
+      <section>
+        <pre><code class="c++" data-trim>
+template &lt;typename T>
+auto value_or(T x) {
+  return [=](auto o) { return o.value_or(x); };
+};
+
+bool any_known_wise_ones(std::vector&lt;person> people) {
+  return std::any_of(begin(people), end(people),
+                      compose(value_or(false), is_person_wise));
+}
+        </code></pre>
+      </section>
+
+
+      <section class="center">
+
+        <h1>Thank you!</h1>
+
+        <p class="fragment">Questions?</p>
+
+        <p class="fragment" >
+          <a href="mailto:toby@mi6.gen.nz>">toby@mi6.gen.nz</a><br />
+          Twitter: <a href="https://twitter.com/toby_allsopp">@toby_allsopp</a>
+        </p>
+      </section>
+    </div>
+  </div>
+
+  <script src="lib/js/head.min.js"></script>
+  <script src="js/reveal.js"></script>
+
+  <script>
+    // More info about config & dependencies:
+    // - https://github.com/hakimel/reveal.js#configuration
+    // - https://github.com/hakimel/reveal.js#dependencies
+    Reveal.initialize({
+      transition: 'none',
+      transitionSpeed: 'fast',
+      controls: false,
+      slideNumber: 'c',
+      history: true,
+      fragmentInURL: true,
+      width: '100%',
+      margin: 0.05,
+      center: false,
+      dependencies: [
+        { src: 'plugin/markdown/marked.js' },
+        { src: 'plugin/markdown/markdown.js' },
+        { src: 'plugin/math/math.js', async: true },
+        { src: 'plugin/notes/notes.js', async: true },
+        //{ src: 'plugin/highlight/highlight.js', async: true, callback: function () { hljs.initHighlightingOnLoad(); } }
+        { src: 'highlightjs/highlight.pack.js' },
+        {
+          src: 'reveal-code-focus/reveal-code-focus.js',
+          async: true,
+          callback: function() {
+            RevealCodeFocus();
+          }
+        }
+      ]
+    });
+  </script>
+</body>
+
+</html>
