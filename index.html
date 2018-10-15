@@ -82,47 +82,54 @@
 
         <h1>Composition</h1>
 
-        <p class="fragment" data-markdown>*closure*: for any integers $x$ and $y$, $x + y$ is an integer</p>
+        <p class="fragment" data-markdown>*closure*: for any integers $x$ and
+        $y$, $x + y$ is an integer</p>
 
-        <aside class="notes">Composition is a fairly overloaded term in programming. I'm going to talk
-          about it in a sense that's both very general and quite specific. I'm going to
-          talk about composition as a kind of algebraic structure, meaning we have a set
-          of something and one or more operations on elements of that set that result in
-          other elements of the set.
+        <aside class="notes">Composition is a fairly overloaded term in
+          programming. I'm going to talk about it in a sense that's both very
+          general and quite specific. I'm going to talk about composition as a
+          kind of algebraic structure, meaning we have a set of something and
+          one or more operations on elements of that set that result in other
+          elements of the set.
 
-          A, hopefully familiar, example is the set of integers and addition - addition is
-          an operation that takes two integers and results in a third. No matter which two
-          integers you feed into the addition operation, you always get an integer out.
-          This property is known as **closure**.
+          A, hopefully familiar, example is the set of integers and addition -
+          addition is an operation that takes two integers and results in a
+          third. No matter which two integers you feed into the addition
+          operation, you always get an integer out. This property is known as
+          **closure**.
 
-          In the kind of composition I'm going to talk about, the elements of the set are
-          parts of your program, for example expressions, statements or functions, and the
-          operations are things that we, as programmers, do to them.
+          In the kind of composition I'm going to talk about, the elements of
+          the set are parts of your program, for example expressions, statements
+          or functions, and the operations are things that we, as programmers,
+          do to them.
 
       </section>
       <section class="center">
 
         <h1>Expressions</h1>
 
-        <aside class="notes">Expressions in most programming languages, including C++, exhibit rich
-          composition. We can start with a relatively small set of primitive expressions
-          and compose them together to make an infinite set of possible expressions.
+        <aside class="notes">Expressions in most programming languages,
+          including C++, exhibit rich composition. We can start with a
+          relatively small set of primitive expressions and compose them
+          together to make an infinite set of possible expressions.
         </aside>
 
 
       </section>
       <section>
 
-        <h2>Primitive Expressions</h2>
+        <h2>Primary Expressions</h2>
 
         <table class="nolines">
-          <tr class="fragment"><td>literal</td>
+          <tr class="fragment"><th>literal</th>
             <td><code>3</code> or <code>"Hello"</code></td>
           </tr>
           <tr class="fragment">
-            <td>id-expression</td>
+            <th>id-expression</th>
             <td><code>x</code></td>
           </tr>
+          <tr class="fragment" ><th>lambda</th><td><code>[]{}</code></td></tr>
+          <tr class="fragment"><th>fold</th><td><code>(xs + ... + 0)</code></td></tr> 
         </table>
       </section>
 
@@ -130,15 +137,15 @@
         <h2>Operations on Expressions</h2>
 
         <table class="nolines">
-          <tr class="fragment"><td>parenthesise</td>
+          <tr class="fragment"><th>parenthesise</th>
             <td><code>(x)</code></td></tr>
-          <tr class="fragment"><td>unary operator</td>
+          <tr class="fragment"><th>unary operator</th>
             <td><code>-x</code></td></tr>
-          <tr class="fragment"><td>binary operator</td>
+          <tr class="fragment"><th>binary operator</th>
             <td><code>x + 4</code></td></tr>
-          <tr class="fragment"><td>ternary operator</td>
+          <tr class="fragment"><th>ternary operator</th>
             <td><code>x ? 7 : y</code></td></tr>
-          <tr class="fragment"><td>function call</td>
+          <tr class="fragment"><th>function call</th>
             <td><code>f(x, y)</code></td></tr>
         </table>
 
@@ -148,18 +155,22 @@
         <h2>Restrictions</h2>
 
         <table class="nolines">
-          <tr><td><code>"Hello"s + 7</code></td><td>(no matching overload)</td></tr>
-          <tr><td><code>&7</code></td><td>(can't take the address of a prvalue)</td></tr>
-          <tr><td><code>7(1, 2)</code></td><td>(not a function)</td></tr>
+          <tr><td><code>"Hello"s + 7</code></td>
+            <td>(no matching overload)</td></tr>
+          <tr><td><code>&7</code></td>
+            <td>(can't take the address of a prvalue)</td></tr>
+          <tr><td><code>7(1, 2)</code></td>
+            <td>(not a function)</td></tr>
         </table>
 
         <p>
-          Not every composition yields an expression, but none yield anything <em>other</em> than
-          an expression.
+          Not every composition yields an expression, but none yield anything
+          <em>other</em> than an expression.
         </p>
 
-        <aside class="notes">Now, not all combinations of expressions are _legal_ in C++ - we have to
-          worry about types and value categories and what-not.
+        <aside class="notes">Now, not all combinations of expressions are
+          _legal_ in C++ - we have to worry about types and value categories and
+          what-not.
         </aside>
 
       </section>
@@ -167,10 +178,9 @@
 
         <h1>Statements</h1>
 
-        <aside class="notes">Statements in C++ have much more limited composition possibilities than
-          expressions.
+        <aside class="notes">Statements in C++ have much more limited
+          composition possibilities than expressions.
         </aside>
-
 
       </section>
       <section>
@@ -178,7 +188,7 @@
         <h2>Primitive Statements</h2>
 
         <table class="nolines">
-          <tr>
+          <tr class="fragment">
             <th>
               expression statement
             </th>
@@ -186,7 +196,7 @@
               <code>x + 4;</code>
             </td>
           </tr>
-          <tr>
+          <tr class="fragment">
             <th>
               jump statement
             </th>
@@ -195,7 +205,7 @@
               <code>return 7;</code>
             </td>
           </tr>
-          <tr>
+          <tr class="fragment">
             <th>
               declaration statement
             </th>
@@ -211,7 +221,7 @@
         <h2>Composed Statements</h2>
 
         <table class="nolines">
-          <tr>
+          <tr class="fragment">
             <th>
               compound statement
             </th>
@@ -219,7 +229,7 @@
               <code>{</code> <em>statement<sub>1</sub></em> &#x2026; <em>statement<sub>n</sub></em> <code>}</code>
             </td>
           </tr>
-          <tr>
+          <tr class="fragment">
             <th>
               selection statement
             </th>
@@ -228,7 +238,7 @@
               <code>switch</code> <code>(</code> <em>condition</em> <code>)</code> <em>statement</em>
             </td>
           </tr>
-          <tr>
+          <tr class="fragment">
             <th>
               iteration statement
             </th>
@@ -240,49 +250,67 @@
           </tr>
         </table>
 
+        <p class="fragment" >
+          $$\mathtt{operation}(\textsf{statement}_1, \textsf{statement}_2, \dots, \textsf{statement}_n) \rightarrow \textsf{statement}$$
+        </p>
+
       </section>
       <section class="center">
 
         <h1>Types</h1>
 
-        Note:
+        <aside class="notes" ></aside>
 
       </section>
       <section>
 
-        <h2>Built-in Types</h2>
+        <h2>Fundamental Types</h2>
 
-        - <code>char</code>
-        - <code>int</code>
-        - <code>double</code>
+        <ul>
+          <li><code>void</code></li>
+          <li><code>std::nullptr_t</code></li>
+          <li><code>bool</code></li>
+          <li><code>char</code>,<code> wchar_t</code>,<code> char16_t</code>,<code> char32_t</code></li>
+          <li><code>int</code>,<code> unsigned</code>,<code> short</code>,<code> long</code>, &hellip;</li>
+          <li><code>float</code>,<code> double</code>,<code> long double</code></li>
+        </ul>
+      </section>
+
+      <section>
 
         <h2>Compound Types</h2>
 
-        - <code>struct</code> - product
-        - <code>union</code> - sum
-        - <code>enum class</code> - "copy"
+        <table class="nolines">
+          <tr class="fragment"><th>reference</th><td><code>int&</code></td></tr>
+          <tr class="fragment"><th>pointer</th><td><code>int*</code></td></tr>
+          <tr class="fragment"><th>pointer to member</th><td><code>int C::*</code></td></tr>
+          <tr class="fragment"><th>array</th><td><code>int[3]</code></td></tr>
+          <tr class="fragment"><th>function</th><td><code>int(int, int)</code></td></tr>
+          <tr class="fragment"><th>enumeration</th><td><code>enum class E : int;</code></td></tr>
+          <tr class="fragment"><th>class</th><td><code>struct { int x; int y; }</code></td></tr>
+        </table>
 
-        Note:
-        That's about it for ways to define new types in C++.
+        <p class="fragment" >
+          $$\mathtt{operation}(T_1, T_2, \dots, T_n) \rightarrow U$$
+        </p>
 
-      </section>
-      <section>
-
-        <aside class="notes">This is, so far, composition built into the grammar of the language.
-          There's no way to change or extend this - you can't introduce a new kind of
-          expression or statement.
-
-          Things get more interesting when we consider functions.
+        <aside class="notes">
+          That's about it for ways to define new types in C++.
         </aside>
-
 
       </section>
       <section class="center">
 
         <h1>Functions</h1>
 
-        Notes:
-        Can we combine functions together to make other functions? Of course we can!
+        <aside class="notes">This is, so far, composition built into the grammar of the language.
+          There's no way to change or extend this - you can't introduce a new kind of
+          expression or statement.
+
+          Things get more interesting when we consider functions.
+
+          Can we combine functions together to make other functions? Of course we can!
+        </aside>
 
 
       </section>
@@ -612,8 +640,10 @@ bool any_known_wise_ones(std::vector&lt;person> people) {
       slideNumber: 'c',
       history: true,
       fragmentInURL: true,
-      width: '100%',
-      margin: 0.05,
+      //width: '100%',
+      width: 1400,
+      height: 787,
+      margin: 0.1,
       center: false,
       dependencies: [
         { src: 'plugin/markdown/marked.js' },
