@@ -11,13 +11,23 @@
   <link rel="stylesheet" href="css/theme/simple.css">
 
   <style>
-   .reveal pre { width: 100%; }
+   .reveal pre { width: fit-content; }
+   .multiCol .col pre { width: 100%; }
 
    /* reveal-code-focus */
    .line { display: block; }
-   .line.focus { background: yellow; }
+   .dimmed .line { opacity: 0.75; }
+   .line.focus { background: #ffff40; opacity: 1; }
 
-   /* multi-column */
+  .reveal .slides section .fragment.highlight-current-focus {
+    visibility: inherit;
+    opacity: 1;
+  }
+  .reveal .slides section .fragment.highlight-current-focus.current-fragment {
+	  background: #ffff40;
+  }
+  
+     /* multi-column */
    .multiCol {
      display: table;
      table-layout: fixed;
@@ -46,7 +56,7 @@
   </style>
 
   <!-- Theme used for syntax highlighting of code -->
-  <link rel="stylesheet" href="highlightjs/styles/github.css">
+  <link rel="stylesheet" href="highlightjs/styles/vs.css">
 
   <!-- Printing and PDF exports -->
   <script>
@@ -122,7 +132,7 @@
 
         <table class="nolines">
           <tr class="fragment"><th>literal</th>
-            <td><code>3</code> or <code>"Hello"</code></td>
+            <td><code>3</code></td>
           </tr>
           <tr class="fragment">
             <th>id-expression</th>
@@ -303,13 +313,14 @@
 
         <h1>Functions</h1>
 
-        <aside class="notes">This is, so far, composition built into the grammar of the language.
-          There's no way to change or extend this - you can't introduce a new kind of
-          expression or statement.
+        <aside class="notes">This is, so far, composition built into the grammar
+          of the language. There's no way to change or extend this - you can't
+          introduce a new kind of expression or statement.
 
           Things get more interesting when we consider functions.
 
-          Can we combine functions together to make other functions? Of course we can!
+          Can we combine functions together to make other functions? Of course
+          we can!
         </aside>
 
 
@@ -321,11 +332,11 @@
         <pre><code class="c++" data-trim>
 struct person {
   year_month_day dob;
-  std::string name;
+  string name;
 };
 
-int dob_to_age(date dob) {
-  return floor<years>(system_clock::now() - dob).count();
+int dob_to_age(year_month_day dob) {
+  return floor&lt;years>(system_clock::now() - dob).count();
 }
 
 int person_age(person p) {
@@ -344,29 +355,27 @@ int person_age(person p) {
 template &lt;typename F, typename G>
 auto compose(F f, G g) {
   return [=](auto x) {
-    return <span class="fragment highlight-current-green">std::invoke(</span>f, std::invoke(g, x));
+    return <span class="fragment highlight-current-focus">std::invoke</span>(f, std::invoke(g, x));
   };
 };
             </code></pre>
 
-        <table width="90%">
-          <tr>
-            <td>
-              <pre class="fragment"><code class="c++" data-trim data-noescape>
+        <div class="multiCol">
+          <div class="col">
+            <pre class="fragment"><code class="c++" data-trim data-noescape>
 int person_age(person p) {
   return dob_to_age(p.dob);
 }
-                  </code></pre>
-            </td>
-            <td>
-              <pre class="fragment"><code class="c++" data-trim data-noescape>
+            </code></pre>
+          </div>
+          <div class="col">
+            <pre class="fragment"><code class="c++" data-trim data-noescape>
 int person_age(person p) {
   return compose(dob_to_age, &person::dob)(p);
 }
-                  </code></pre>
-            </td>
-          </tr>
-        </table>
+            </code></pre>
+          </div>
+        </div>
 
         <pre class="fragment"><code class="c++" data-trim data-noescape>
               <span class="fragment strike">inline constexpr auto person_age = compose(dob_to_age, &person::dob);</span>
@@ -384,17 +393,20 @@ int person_age(person p) {
         <pre><code class="c++" data-trim>
 struct person {
   year_month_day dob;
-  std::string name;
+  string name;
 };
 int person_age(person p);
-            </code></pre>
+        </code></pre>
 
         <pre><code class="c++" data-trim>
-bool any_wise_ones(std::vector&lt;person> people) {
+bool any_wise_ones(vector&lt;person> people) {
   return std::any_of(begin(people), end(people),
                       [](person p) { return person_age(p) > 40; });
 }
-            </code></pre>
+        </code></pre>
+
+        <p class="fragment" data-code-block="2" data-code-focus="3"></p>
+
       </section>
       <section>
 
@@ -405,7 +417,7 @@ auto greater_than(int x) {
   return [=](auto y) { return y > x; };
 }
 
-bool any_wise_ones(std::vector&lt;person> people) {
+bool any_wise_ones(vector&lt;person> people) {
   return std::any_of(begin(people), end(people),
                       compose(greater_than(40), person_age));
 }
@@ -423,7 +435,7 @@ auto greater_than(int x) {
   return std::bind(std::greater(), _1, x);
 }
 
-bool any_wise_ones(std::vector&lt;person> people) {
+bool any_wise_ones(vector&lt;person> people) {
   return std::any_of(begin(people), end(people),
                     compose(greater_than(40), person_age));
 }
@@ -437,14 +449,14 @@ bool any_wise_ones(std::vector&lt;person> people) {
         <h2>More Complicated Function Composition</h2>
 
         <pre><code class="c++" data-trim>
-void sort_by_age(std::vector&lt;person>& people) {
+void sort_by_age(vector&lt;person>& people) {
   std::sort(begin(people), end(people),
             [](person p1, person p2) { return person_age(p1) < person_age(p2); });
 }
         </code></pre>
 
         <pre><code class="c++" data-trim>
-void sort_by_name(std::vector&lt;person>& people) {
+void sort_by_name(vector&lt;person>& people) {
   std::sort(begin(people), end(people),
             [](person p1, person p2) { return p1.name < p2.name; });
 }
@@ -467,12 +479,12 @@ auto on(F f, G g) {
         </code></pre>
 
         <pre class="fragment"><code class="c++" data-trim>
-void sort_by_age(std::vector&lt;person>& people) {
+void sort_by_age(vector&lt;person>& people) {
   std::sort(begin(people), end(people),
             on(std::less(), person_age));
 }
 
-void sort_by_name(std::vector&lt;person>& people) {
+void sort_by_name(vector&lt;person>& people) {
   std::sort(begin(people), end(people),
             on(std::less(), &person::name));
 }
@@ -496,36 +508,34 @@ void sort_by_name(std::vector&lt;person>& people) {
         <h2>More Difficult Composition</h2>
 
         <div class="multiCol" >
-          <div class="col" style="width: 30%">
-          <pre><code class="c++" data-noescape data-trim>
+          <div class="col" style="width: 40%">
+          <pre class="dimmed"><code class="c++" data-noescape data-trim>
 struct person {
-  std::optional&lt;date> dob;
-  std::string name;
+  optional&lt;year_month_day> dob;
+  string name;
 };
 
-int dob_to_age(date dob) {
-  return today() - dob;
-}
+// same as before
+int dob_to_age(year_month_day dob);
 
-std::optional&lt;int>
-person_age(person p) {
-  if (!p.dob) return std::nullopt;
+auto person_age(person p) -> optional&lt;int> {
+  if (!p.dob) return nullopt;
   return dob_to_age(*p.dob);
 }
           </code></pre>
         </div>
 
         <div class="col" >
-          <pre><code class="c++" data-noescape data-trim>
+          <pre class="dimmed"><code class="c++" data-noescape data-trim>
 bool is_age_wise(int age) { return age > 40; }
 
-std::optional&lt;bool> is_person_wise(person p) {
+auto is_person_wise(person p) -> optional&lt;bool> {
   const auto age = person_age(p);
-  if (!age) return std::nullopt;
+  if (!age) return nullopt;
     return is_age_wise(*age);
 }
 
-bool any_known_wise_ones(std::vector&lt;person> people) {
+bool any_known_wise_ones(vector&lt;person> people) {
   return std::any_of(
     begin(people), end(people),
     [](person p) {
@@ -537,16 +547,18 @@ bool any_known_wise_ones(std::vector&lt;person> people) {
         </div>
 
         <div style="display: none">
-          <span class="fragment" data-fragment-index="1" data-code-block="1" data-code-focus="1-4" >Hello</span>
-          <span class="fragment" data-fragment-index="2" data-code-block="1" data-code-focus="6-8" >Hello</span>
-          <span class="fragment" data-fragment-index="3" data-code-block="1" data-code-focus="10-14" >Hello</span>
+          <span class="fragment" data-fragment-index="1" data-code-block="1" data-code-focus="2" >Hello</span>
+          <span class="fragment" data-fragment-index="2" data-code-block="1" data-code-focus="6-7" >Hello</span>
+          <span class="fragment" data-fragment-index="3" data-code-block="1" data-code-focus="9-12" >Hello</span>
           <span class="fragment" data-fragment-index="4" data-code-block="2" data-code-focus="1" >Hello</span>
           <span class="fragment" data-fragment-index="5" data-code-block="2" data-code-focus="3-7" >Hello</span>
           <span class="fragment" data-fragment-index="6" data-code-block="2" data-code-focus="9-15" >Hello</span>
         </div>
 
-        <p class="fragment" data-fragment-index="10" data-code-block="1" data-code-focus="12-13">
-          <span class="fragment" data-fragment-index="10" data-code-block="2" data-code-focus="5-6">
+        <p class="fragment" data-fragment-index="10" data-code-block="1"
+           data-code-focus="10-11">
+          <span class="fragment" data-fragment-index="10" data-code-block="2"
+                data-code-focus="5-6">
             Notice anything?
           </span>
         </p>
@@ -558,30 +570,32 @@ bool any_known_wise_ones(std::vector&lt;person> people) {
         <pre><code class="c++" data-trim data-escape>
 template &lt;typename F, typename G>
 auto compose_optional(auto f, auto g) {
-  return [=](auto x) -> std::optional&lt;decltype(std::invoke(f, *std::invoke(g, x)))> {
+  return [=](auto x) -> optional&lt;decltype(std::invoke(f, *std::invoke(g, x)))> {
     const auto o = std::invoke(g, x);
-    if (!o) return std::nullopt;
+    if (!o) return nullopt;
     return std::invoke(f, *o);
   };
 }
         </code></pre>
 
-        <div class="multiCol" >
+        <div class="multiCol " >
           <div class="col">
+            Before
             <pre><code class="c++" data-trim>
 auto person_age(person p) -> optional&lt;int> {
-  if (!p.dob) return std::nullopt;
+  if (!p.dob) return nullopt;
   return dob_to_age(*p.dob);
 }
 
 auto is_person_wise(person p) -> optional&lt;bool> {
   const auto age = person_age(p);
-  if (!age) return std::nullopt;
+  if (!age) return nullopt;
   return is_age_wise(*age);
 }
             </code></pre>
           </div>
-          <div class="col" >
+          <div class="col fragment" >
+            After
             <pre><code class="c++" data-trim>
 auto person_age(person p) -> optional&lt;int> {
   return compose_optional(dob_to_age,
@@ -598,19 +612,84 @@ auto is_person_wise(person p) -> optional&lt;bool> {
 
       </section>
       <section>
-        <pre><code class="c++" data-trim>
+        <h2>Composing with <code>std::optional</code></h2>
+
+        <pre><code class="cpp" data-trim>
 template &lt;typename T>
 auto value_or(T x) {
   return [=](auto o) { return o.value_or(x); };
 };
-
-bool any_known_wise_ones(std::vector&lt;person> people) {
-  return std::any_of(begin(people), end(people),
-                      compose(value_or(false), is_person_wise));
-}
         </code></pre>
+
+        <div class="multiCol">
+          <div class="col" >
+            Before
+            <pre><code class="c++" data-trim>
+bool any_known_wise_ones(vector&lt;person> people) {
+  return std::any_of(
+    begin(people), end(people),
+    [](person p) {
+      return is_person_wise().value_or(false);
+    });
+}
+            </code></pre>
+          </div>
+          <div class="col fragment" >
+            After
+            <pre><code class="c++" data-trim>
+bool any_known_wise_ones(vector&lt;person> people) {
+  return std::any_of(
+    begin(people), end(people),
+    compose(value_or(false), is_person_wise));
+}
+            </code></pre>
+          </div>
+        </div>
       </section>
 
+      <section>
+        <h2>Badly-behaved functions</h2>
+
+        inputs -> outputs = easy to compose
+        
+        <p>What about functions that return an error code and have output parameters?</p>
+        <div class="multiCol">
+          <div class="col">
+            <pre><code class="c++" data-trim>
+bool read_file(path in, string& out);
+bool parse_person(string in , person& out);
+
+bool read_person(path in, person& out) {
+  string s;
+  if (!read_file(in, s)) return false;
+  return parse_person(s, out);
+}
+            </code></pre>
+          </div>
+          <div class="col">
+            <pre><code class="c++" data-trim>
+template &lt;typename F, typename G>
+auto compose_out(F f, G g) {
+  return [=](auto in, auto& out) {
+    first_param_t&lt;F>  tmp; // ???
+    if (!g(in, tmp)) return false;
+    return f(tmp, out);
+  };
+}
+
+bool read_person(path in, person& out) {
+  return compose_out(read_file,
+                     parse_person)(in, out);
+}
+            </code></pre>
+          </div>
+        </div>
+
+        <aside class="notes"> The functions we've looked at so far have been
+          easy to compose because they take inputs as parameters and return
+          results as their return value.
+        </aside>
+      </section>
 
       <section class="center">
 
