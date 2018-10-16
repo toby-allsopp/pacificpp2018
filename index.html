@@ -335,14 +335,21 @@ struct person {
   string name;
 };
 
-int dob_to_age(year_month_day dob) {
-  return floor&lt;years>(system_clock::now() - dob).count();
-}
+int dob_to_age(year_month_day dob);
 
 int person_age(person p) {
   return dob_to_age(p.dob);
 }
         </code></pre>
+
+        <p class="fragment">See the function composition?</p>
+        <p class="fragment" data-code-focus="9">
+          We call <code>dob_to_age</code> with the result of getting the <code>dob</code> member from <code>p</code>.
+        </p>
+
+        <aside class="notes">
+          Note on <code>std::</code> usage: generally <code>using namespace std;</code> in effect but I will sometimes throw in a <code>std::</code> for emphasis.
+        </aside>
 
       </section>
       <section>
@@ -351,25 +358,27 @@ int person_age(person p) {
 
         $\mathtt{compose}(f, g) = \lambda (x) \rightarrow f(g(x))$
 
-        <pre class="fragment"><code class="c++" data-trim data-noescape>
+        <pre class="fragment" data-fragment-index="1"><code class="c++" data-trim data-noescape>
 template &lt;typename F, typename G>
 auto compose(F f, G g) {
   return [=](auto x) {
-    return <span class="fragment highlight-current-focus">std::invoke</span>(f, std::invoke(g, x));
+    return <span class="fragment highlight-current-focus" data-fragment-index="2">std::invoke</span>(f, <span class="fragment highlight-current-focus" data-fragment-index="2">std::invoke</span>(g, x));
   };
 };
             </code></pre>
 
         <div class="multiCol">
-          <div class="col">
-            <pre class="fragment"><code class="c++" data-trim data-noescape>
+          <div class="col fragment">
+            Before
+            <pre><code class="c++" data-trim data-noescape>
 int person_age(person p) {
   return dob_to_age(p.dob);
 }
             </code></pre>
           </div>
-          <div class="col">
-            <pre class="fragment"><code class="c++" data-trim data-noescape>
+          <div class="col fragment">
+            After
+            <pre><code class="c++" data-trim data-noescape>
 int person_age(person p) {
   return compose(dob_to_age, &person::dob)(p);
 }
@@ -401,11 +410,14 @@ int person_age(person p);
         <pre><code class="c++" data-trim>
 bool any_wise_ones(vector&lt;person> people) {
   return std::any_of(begin(people), end(people),
-                      [](person p) { return person_age(p) > 40; });
+                     [](person p) { return person_age(p) > 40; });
 }
         </code></pre>
 
-        <p class="fragment" data-code-block="2" data-code-focus="3"></p>
+        <p>Spot the function composition?</p>
+        <p class="fragment" data-code-block="2" data-code-focus="3">
+          There's lots, but let's focus on the lambda.
+        </p>
 
       </section>
       <section>
@@ -416,12 +428,32 @@ bool any_wise_ones(vector&lt;person> people) {
 auto greater_than(int x) {
   return [=](auto y) { return y > x; };
 }
+        </code></pre>
 
+        <div class="multiCol">
+          <div class="col fragment">
+            Before
+        <pre><code class="c++" data-trim>
 bool any_wise_ones(vector&lt;person> people) {
-  return std::any_of(begin(people), end(people),
-                      compose(greater_than(40), person_age));
+  return std::any_of(
+    begin(people), end(people),
+          [](person p) {
+            return person_age(p) > 40;
+          });
 }
         </code></pre>
+      </div>
+      <div class="col fragment">
+        After
+        <pre><code class="c++" data-trim>
+bool any_wise_ones(vector&lt;person> people) {
+  return std::any_of(
+    begin(people), end(people),
+          compose(greater_than(40), person_age));
+}
+        </code></pre>
+      </div>
+    </div>
 
       </section>
       <section>
