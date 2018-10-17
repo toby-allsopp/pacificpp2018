@@ -409,13 +409,16 @@ int person_age(person p);
 
         <pre><code class="c++" data-trim>
 bool any_wise_ones(vector&lt;person> people) {
-  return std::any_of(begin(people), end(people),
-                     [](person p) { return person_age(p) > 40; });
+  return std::any_of(
+    begin(people), end(people),
+          [](person p) {
+            return person_age(p) > 40;
+          });
 }
         </code></pre>
 
         <p>Spot the function composition?</p>
-        <p class="fragment" data-code-block="2" data-code-focus="3">
+        <p class="fragment" data-code-block="2" data-code-focus="5">
           There's lots, but let's focus on the lambda.
         </p>
 
@@ -458,21 +461,31 @@ bool any_wise_ones(vector&lt;person> people) {
       </section>
       <section>
 
-        <h2>Surfaced Function Composition</h2>
+        <h2>Partial Function Application</h2>
 
         $$\mathtt{partial}(f, x) = \lambda (x_1, \dots) \rightarrow f(x, x_1, \dots)$$
 
-        <pre><code class="c++" data-trim>
+        <pre class="fragment"><code>std::bind</code></pre>
+
+        <div class="multiCol">
+            <div class="col fragment">
+              Before
+          <pre><code class="c++" data-trim>
+auto greater_than(int x) {
+  return [=](auto y) { return y > x; };
+}
+        </code></pre>
+      </div>
+      <div class="col fragment">
+        After
+          <pre><code class="c++" data-trim>
 auto greater_than(int x) {
   return std::bind(std::greater(), _1, x);
 }
-
-bool any_wise_ones(vector&lt;person> people) {
-  return std::any_of(begin(people), end(people),
-                    compose(greater_than(40), person_age));
-}
         </code></pre>
-
+        </div>
+      </div>
+  
         <p class="fragment">OK, but is it <em>really</em> useful?</p>
 
       </section>
@@ -483,16 +496,23 @@ bool any_wise_ones(vector&lt;person> people) {
         <pre><code class="c++" data-trim>
 void sort_by_age(vector&lt;person>& people) {
   std::sort(begin(people), end(people),
-            [](person p1, person p2) { return person_age(p1) < person_age(p2); });
+            [](person p1, person p2) {
+              return person_age(p1) &lt; person_age(p2);
+            });
 }
+
+<div class="fragment" data-fragment-index="1">void sort_by_name(vector&lt;person>& people) {
+  std::sort(begin(people), end(people),
+            [](person p1, person p2) {
+              return p1.name &lt; p2.name;
+            });
+}</div>
         </code></pre>
 
-        <pre><code class="c++" data-trim>
-void sort_by_name(vector&lt;person>& people) {
-  std::sort(begin(people), end(people),
-            [](person p1, person p2) { return p1.name < p2.name; });
-}
-        </code></pre>
+        <p class="fragment" data-fragment-index="2" data-code-focus="4">
+          <span class="fragment" data-fragment-index="2" data-code-focus="11">
+            What kind of composition is this?</span>
+        </p>
 
       </section>
       <section>
@@ -510,30 +530,76 @@ auto on(F f, G g) {
 }
         </code></pre>
 
-        <pre class="fragment"><code class="c++" data-trim>
+        <div class="multiCol">
+          <div class="col fragment" style="width: 50%">
+            Before
+            <pre><code class="c++" data-trim>
+void sort_by_age(vector&lt;person>& people) {
+  std::sort(begin(people), end(people),
+            [](person p1, person p2) {
+              return person_age(p1) &lt; person_age(p2);
+            });
+}
+void sort_by_name(vector&lt;person>& people) {
+  std::sort(begin(people), end(people),
+            [](person p1, person p2) {
+              return p1.name &lt; p2.name;
+            });
+}
+            </code></pre>
+          </div>
+          <div class="col fragment">
+            After
+            <pre><code class="c++" data-trim>
 void sort_by_age(vector&lt;person>& people) {
   std::sort(begin(people), end(people),
             on(std::less(), person_age));
 }
 
+
 void sort_by_name(vector&lt;person>& people) {
   std::sort(begin(people), end(people),
             on(std::less(), &person::name));
 }
-        </code></pre>
-
-        <aside class="notes">This is a generalisation of <code>compose</code>
-        </aside>
+            </code></pre>
+          </div>
+        </div>
 
       </section>
       <section>
-        <h2><code>compose</code> and <code>on</code> Compared</h2>
+        <h2><code>compose</code> and <code>on</code></h2>
         <div>
           \begin{alignat}{4}
           \mathtt{compose}(f, g) &= \lambda (x) & &\rightarrow f(g(x)) \\
           \mathtt{on}(f, g) &= \lambda (x_1, x_2, \dots) & &\rightarrow f(g(x_1), g(x_2), \dots)
           \end{alignat}
         </div>
+
+        <div class="multiCol">
+          <div class="col">
+            <pre class="fragment"><code class="c++" data-trim data-noescape>
+template &lt;typename F, typename G>
+auto compose(F f, G g) {
+  return [=](auto x) {
+    return std::invoke(f, std::invoke(g, x));
+  };
+};
+            </code></pre>
+          </div>
+          <div class="col">
+            <pre class="fragment"><code class="c++" data-trim>
+template &lt;typename F, typename G>
+auto on(F f, G g) {
+  return [=](auto... x) {
+    return std::invoke(f, std::invoke(g, x)...);
+  };
+}
+            </code></pre>
+          </div>
+        </div>
+
+        <aside class="notes">This (variadic templates) is one of the really cool things about C++
+        </aside>
       </section>
 
       <section>
@@ -541,7 +607,7 @@ void sort_by_name(vector&lt;person>& people) {
 
         <div class="multiCol" >
           <div class="col" style="width: 40%">
-          <pre class="dimmed"><code class="c++" data-noescape data-trim>
+          <pre><code class="c++" data-noescape data-trim>
 struct person {
   optional&lt;year_month_day> dob;
   string name;
@@ -558,7 +624,7 @@ auto person_age(person p) -> optional&lt;int> {
         </div>
 
         <div class="col" >
-          <pre class="dimmed"><code class="c++" data-noescape data-trim>
+          <pre><code class="c++" data-noescape data-trim>
 bool is_age_wise(int age) { return age > 40; }
 
 auto is_person_wise(person p) -> optional&lt;bool> {
