@@ -40,7 +40,7 @@
      display: table-cell;
      vertical-align: top;
      width: 45%;
-     padding: 2% 1% 2% 1%;
+     padding: 0% 1% 0% 1%;
    }
    .multiCol .col:first-of-type {
      padding-left: 0;
@@ -92,21 +92,12 @@
 
         <h1>Composition</h1>
 
-        <p class="fragment" data-markdown>*closure*: for any integers $x$ and
-        $y$, $x + y$ is an integer</p>
-
-        <aside class="notes">Composition is a fairly overloaded term in
-          programming. I'm going to talk about it in a sense that's both very
-          general and quite specific. I'm going to talk about composition as a
-          kind of algebraic structure, meaning we have a set of something and
-          one or more operations on elements of that set that result in other
-          elements of the set.
-
-          A, hopefully familiar, example is the set of integers and addition -
-          addition is an operation that takes two integers and results in a
-          third. No matter which two integers you feed into the addition
-          operation, you always get an integer out. This property is known as
-          **closure**.
+        <aside class="notes">
+          <ul>
+            <li>Not composition vs. inheritance (OO)</li>
+            <li>Operations on elements of a set that yield other elements of the set</li>
+            <li>Example: set of integers</li>
+          </ul>
 
           In the kind of composition I'm going to talk about, the elements of
           the set are parts of your program, for example expressions, statements
@@ -260,10 +251,6 @@
           </tr>
         </table>
 
-        <p class="fragment" >
-          $$\mathtt{operation}(\textsf{statement}_1, \textsf{statement}_2, \dots, \textsf{statement}_n) \rightarrow \textsf{statement}$$
-        </p>
-
       </section>
       <section class="center">
 
@@ -300,10 +287,6 @@
           <tr class="fragment"><th>class</th><td><code>struct { int x; int y; }</code></td></tr>
         </table>
 
-        <p class="fragment" >
-          $$\mathtt{operation}(T_1, T_2, \dots, T_n) \rightarrow U$$
-        </p>
-
         <aside class="notes">
           That's about it for ways to define new types in C++.
         </aside>
@@ -324,6 +307,22 @@
         </aside>
 
 
+      </section>
+
+      <section>
+        <h2>Functions?</h2>
+        
+        <p class="fragment">Anything that works with <code>std::invoke</code> (C++17)</p>
+        <p class="fragment">Corresponds to the <em>Callable</em> named requirement</p>
+        <ul>
+          <li class="fragment">actual functions</li>
+          <li class="fragment">references to functions</li>
+          <li class="fragment">pointers to functions</li>
+          <li class="fragment">objects with <code>operator()</code></li>
+          <li class="fragment">objects with implicit conversion to function pointer</li>
+          <li class="fragment">pointers to member functions</li>
+          <li class="fragment">pointers to data members</li>
+        </ul>
       </section>
       <section>
 
@@ -349,6 +348,8 @@ int person_age(person p) {
 
         <aside class="notes">
           Note on <code>std::</code> usage: generally <code>using namespace std;</code> in effect but I will sometimes throw in a <code>std::</code> for emphasis.
+
+          Note on passing by value.
         </aside>
 
       </section>
@@ -630,7 +631,7 @@ bool is_age_wise(int age) { return age > 40; }
 auto is_person_wise(person p) -> optional&lt;bool> {
   const auto age = person_age(p);
   if (!age) return nullopt;
-    return is_age_wise(*age);
+  return is_age_wise(*age);
 }
 
 bool any_known_wise_ones(vector&lt;person> people) {
@@ -665,19 +666,35 @@ bool any_known_wise_ones(vector&lt;person> people) {
 
         <h2>Composing with <code>std::optional</code></h2>
 
+        <div class="multiCol">
+          <div class="col" style="width: 40%">
+            <pre class="fragment"><code class="c++" data-trim data-noescape>
+template &lt;typename F, typename G>
+auto compose(F f, G g) {
+  return [=](auto x) {
+    return std::invoke(f, std::invoke(g, x));
+  };
+};
+            </code></pre>
+          </div>
+          <div class="col fragment">
         <pre><code class="c++" data-trim data-escape>
 template &lt;typename F, typename G>
-auto compose_optional(auto f, auto g) {
-  return [=](auto x) -> optional&lt;decltype(std::invoke(f, *std::invoke(g, x)))> {
+auto compose_optional(F f, G g) {
+  return [=](auto x)
+      -> optional&lt;decltype(
+           std::invoke(f, *std::invoke(g, x)))> {
     const auto o = std::invoke(g, x);
     if (!o) return nullopt;
     return std::invoke(f, *o);
   };
 }
         </code></pre>
+          </div>
+        </div>
 
         <div class="multiCol " >
-          <div class="col">
+          <div class="col fragment">
             Before
             <pre><code class="c++" data-trim>
 auto person_age(person p) -> optional&lt;int> {
@@ -746,16 +763,16 @@ bool any_known_wise_ones(vector&lt;person> people) {
       </section>
 
       <section>
-        <h2>Badly-behaved functions</h2>
+        <h2>Badly Behaved Functions</h2>
 
         inputs -> outputs = easy to compose
         
-        <p>What about functions that return an error code and have output parameters?</p>
+        <p class="fragment">What about functions that return an error code and have output parameters?</p>
         <div class="multiCol">
-          <div class="col">
+          <div class="col fragment">
             <pre><code class="c++" data-trim>
 bool read_file(path in, string& out);
-bool parse_person(string in , person& out);
+bool parse_person(string in, person& out);
 
 bool read_person(path in, person& out) {
   string s;
@@ -764,12 +781,12 @@ bool read_person(path in, person& out) {
 }
             </code></pre>
           </div>
-          <div class="col">
+          <div class="col fragment">
             <pre><code class="c++" data-trim>
 template &lt;typename F, typename G>
 auto compose_out(F f, G g) {
   return [=](auto in, auto& out) {
-    first_param_t&lt;F>  tmp; // ???
+    second_param_t&lt;G>  tmp; // left as an exercise
     if (!g(in, tmp)) return false;
     return f(tmp, out);
   };
@@ -786,19 +803,172 @@ bool read_person(path in, person& out) {
         <aside class="notes"> The functions we've looked at so far have been
           easy to compose because they take inputs as parameters and return
           results as their return value.
+
+          <ul>
+            <li>not always possible to determine type of tmp</li>
+            <li>requires tmp to be default-constructed</li>
+            <li>only works for one input, one output</li>
+          </ul>
         </aside>
+      </section>
+
+      <section class="center">
+        <h1>Algorithms</h1>
+      </section>
+
+      <section>
+        <h2>Transforming and Filtering</h2>
+
+        <p>
+          Say we want to extract the names of wise people&hellip;
+        </p>
+
+        <pre class="fragment"><code data-trim>
+auto names_of_wise_ones(vector&lt;person> people) {
+  vector&lt;string> names;
+  for (const auto& person : people) {
+    if (is_person_wise(person).value_or(false)) {
+      names.push_back(person.name);
+    }
+  }
+  return names;
+}
+        </code></pre>
+
+        <p class="fragment">
+          But, algorithms!?!?
+        </p>
+      </section>
+
+      <section>
+        <h2>Standard Algorithms</h2>
+        <div class="multiCol">
+          <div class="col">
+            <pre><code class="c++" data-trim>
+template &lt;typename InputIt, typename OutputIt,
+          typename UnaryPredicate>
+OutputIt copy_if(InputIt first, InputIt last,
+                 OutputIt d_first,
+                 UnaryPredicate pred);
+            </code></pre>
+          </div>
+          <div class="col">
+            <pre><code class="c++" data-trim>
+template &lt;typename InputIt, typename OutputIt,
+          typename UnaryOperation>
+OutputIt transform(InputIt first1, InputIt last1,
+                   OutputIt d_first,
+                   UnaryOperation unary_op);
+            </code></pre>
+          </div>
+        </div>
+
+        <div class="multiCol">
+          <div class="col fragment">
+            Before
+            <pre><code data-trim>
+auto names_of_wise_ones(vector&lt;person> people) {
+  vector&lt;string> names;
+  for (const auto& person : people) {
+    if (is_person_wise(person).value_or(false)) {
+      names.push_back(person.name);
+    }
+  }
+  return names;
+}
+            </code></pre>
+          </div>
+          <div class="col fragment">
+            After
+            <pre><code data-trim>
+auto names_of_wise_ones(vector&lt;person> people) {
+  vector&lt;person> wise_ones;
+  std::copy_if(begin(people), end(people),
+               std::back_inserter(wise_ones),
+               compose(value_or(false),
+                       is_person_wise));
+  vector&lt;string> names;
+  std::transform(begin(wise_ones), end(wise_ones),
+                 std::back_inserter(names),
+                 &person::name);
+  return names;
+}
+            </code></pre>
+          </div>
+        </div>
+
+        <p class="fragment">
+          Great, right?
+          <span class="fragment" data-code-block="4" data-code-focus="2">
+            We've made a whole extra copy!
+          </span>
+        </p>
+
+        <aside class="notes" data-markdown>
+          - the copy might not matter
+          - could mutate the argument (but original doesn't require a copy at all)
+          - could make a transforming output iterator
+          - standard algorithms **just don't compose**
+        </aside>
+      </section>
+
+      <section>
+        <h2>Enter Range Adaptors (and Views)</h2>
+
+        <pre><code class="c++" data-trim>
+auto names_of_wise_ones(vector&lt;person> people) {
+  std::vector&lt;string> names =
+    people | view::filter(compose(value_or(false), is_person_wise))
+           | view::transform(&person::name);
+  return names;
+}
+        </code></pre>
+
+        <p class="fragment">Available now in <a href="https://github.com/ericniebler/range-v3">range-v3</a></p>
+        <div class="fragment">
+          <p>Proposed for C++20</p>
+          <ul>
+            <li><a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p0896r3.pdf">[P0896] The One Ranges Proposal</a></li>
+            <li><a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p0789r3.pdf">[P0789] Range Adaptors and Utilities</a></li>
+            <li><a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p1206r0.pdf">[P1206] Range constructors for standard containers and views</a></li>
+          </ul>
+        </div>
+      </section>
+
+      <section class="center">
+        <h1>Summary</h1>
+      </section>
+
+      <section>
+        <h2>Summary</h2>
+
+        <ul>
+          <li class="fragment">Composition is everywhere</li>
+          <li class="fragment">Composition can be hidden or explicit</li>
+          <li class="fragment">Functions can be composed by functions</li>
+          <li class="fragment">Output paramters hurt composability</li>
+          <li class="fragment">Standard algorithms do not compose well</li>
+          <li class="fragment">Ranges will fix this</li>
+        </ul>
+
+        <p class="fragment">But most of all:</p>
+        <h3 class="fragment">
+          Think compositionally!
+        </h3>
       </section>
 
       <section class="center">
 
         <h1>Thank you!</h1>
 
-        <p class="fragment">Questions?</p>
+        <h2>Questions?</h2>
 
-        <p class="fragment" >
-          <a href="mailto:toby@mi6.gen.nz>">toby@mi6.gen.nz</a><br />
-          Twitter: <a href="https://twitter.com/toby_allsopp">@toby_allsopp</a>
-        </p>
+        <table class="nolines" style="font-size: 70%">
+          <tr><th>Email</th> <td><a href="mailto:toby@mi6.gen.nz>">toby@mi6.gen.nz</a></td></tr>
+          <tr><th>Twitter</th> <td><a href="https://twitter.com/toby_allsopp">@toby_allsopp</a></td></tr>
+          <tr><th>#include&lt;C++> Discord</th> <td><a href="https://discord.gg/ZPErMGW">Toby Allsopp#8409</a></td></tr>
+          <tr><th>Cpplang Slack</th> <td><a href="https://cpplang.slack.com/messages/@U4MQAKA48">toby_allsopp</a></td></tr>
+        </table>
       </section>
     </div>
   </div>
