@@ -638,7 +638,7 @@ bool any_known_wise_ones(vector&lt;person> people) {
   return std::any_of(
     begin(people), end(people),
     [](person p) {
-      return is_person_wise().value_or(false);
+      return is_person_wise(p).value_or(false);
     });
 }
           </code></pre>
@@ -744,7 +744,7 @@ bool any_known_wise_ones(vector&lt;person> people) {
   return std::any_of(
     begin(people), end(people),
     [](person p) {
-      return is_person_wise().value_or(false);
+      return is_person_wise(p).value_or(false);
     });
 }
             </code></pre>
@@ -946,7 +946,7 @@ auto names_of_wise_ones(vector&lt;person> people) {
           <li class="fragment">Composition is everywhere</li>
           <li class="fragment">Composition can be hidden or explicit</li>
           <li class="fragment">Functions can be composed by functions</li>
-          <li class="fragment">Output paramters hurt composability</li>
+          <li class="fragment">Output parameters hurt composability</li>
           <li class="fragment">Standard algorithms do not compose well</li>
           <li class="fragment">Ranges will fix this</li>
         </ul>
