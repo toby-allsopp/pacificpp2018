@@ -328,7 +328,7 @@
 
         <h2>Manual Function Composition</h2>
 
-        <pre><code class="c++" data-trim>
+        <pre><code class="c++" data-trim data-noescape>
 struct person {
   year_month_day dob;
   string name;
@@ -337,12 +337,12 @@ struct person {
 int dob_to_age(year_month_day dob);
 
 int person_age(person p) {
-  return dob_to_age(p.dob);
-}
+<div class="fragment highlight-current-focus" data-fragment-index="2">  return dob_to_age(p.dob);
+</div>}
         </code></pre>
 
-        <p class="fragment">See the function composition?</p>
-        <p class="fragment" data-code-focus="9">
+        <p class="fragment" data-fragment-index="1">See the function composition?</p>
+        <p class="fragment" data-fragment-index="2">
           We call <code>dob_to_age</code> with the result of getting the <code>dob</code> member from <code>p</code>.
         </p>
 
@@ -408,18 +408,18 @@ struct person {
 int person_age(person p);
         </code></pre>
 
-        <pre><code class="c++" data-trim>
+        <pre><code class="c++" data-trim data-noescape>
 bool any_wise_ones(vector&lt;person> people) {
   return std::any_of(
     begin(people), end(people),
-          [](person p) {
-            return person_age(p) > 40;
-          });
+    [](person p) {
+<div class="fragment highlight-current-focus" data-fragment-index="1">      return person_age(p) > 40;
+</div>    });
 }
         </code></pre>
 
         <p>Spot the function composition?</p>
-        <p class="fragment" data-code-block="2" data-code-focus="5">
+        <p class="fragment" data-fragment-index="1">
           There's lots, but let's focus on the lambda.
         </p>
 
@@ -441,9 +441,9 @@ auto greater_than(int x) {
 bool any_wise_ones(vector&lt;person> people) {
   return std::any_of(
     begin(people), end(people),
-          [](person p) {
-            return person_age(p) > 40;
-          });
+    [](person p) {
+      return person_age(p) > 40;
+    });
 }
         </code></pre>
       </div>
@@ -453,7 +453,7 @@ bool any_wise_ones(vector&lt;person> people) {
 bool any_wise_ones(vector&lt;person> people) {
   return std::any_of(
     begin(people), end(people),
-          compose(greater_than(40), person_age));
+    compose(greater_than(40), person_age));
 }
         </code></pre>
       </div>
@@ -494,25 +494,24 @@ auto greater_than(int x) {
 
         <h2>More Complicated Function Composition</h2>
 
-        <pre><code class="c++" data-trim>
+        <pre><code class="c++" data-trim data-noescape>
 void sort_by_age(vector&lt;person>& people) {
   std::sort(begin(people), end(people),
             [](person p1, person p2) {
-              return person_age(p1) &lt; person_age(p2);
-            });
+<div class="fragment highlight-current-focus" data-fragment-index="2">              return person_age(p1) &lt; person_age(p2);
+</div>            });
 }
 
 <div class="fragment" data-fragment-index="1">void sort_by_name(vector&lt;person>& people) {
   std::sort(begin(people), end(people),
             [](person p1, person p2) {
-              return p1.name &lt; p2.name;
-            });
+<div class="fragment highlight-current-focus" data-fragment-index="2">              return p1.name &lt; p2.name;
+</div>            });
 }</div>
         </code></pre>
 
-        <p class="fragment" data-fragment-index="2" data-code-focus="4">
-          <span class="fragment" data-fragment-index="2" data-code-focus="11">
-            What kind of composition is this?</span>
+        <p class="fragment" data-fragment-index="2">
+          What kind of composition is this?
         </p>
 
       </section>
@@ -610,56 +609,43 @@ auto on(F f, G g) {
           <div class="col" style="width: 40%">
           <pre><code class="c++" data-noescape data-trim>
 struct person {
-  optional&lt;year_month_day> dob;
-  string name;
+<div class="fragment highlight-current-focus" data-fragment-index="1">  optional&lt;year_month_day> dob;
+</div>  string name;
 };
 
-// same as before
+<div class="fragment highlight-current-focus" data-fragment-index="2">// same as before
 int dob_to_age(year_month_day dob);
-
-auto person_age(person p) -> optional&lt;int> {
-  if (!p.dob) return nullopt;
+</div>
+<div class="fragment highlight-current-focus" data-fragment-index="3">auto person_age(person p) -> optional&lt;int> {
+<div class="fragment highlight-current-focus" data-fragment-index="10">  if (!p.dob) return nullopt;
   return dob_to_age(*p.dob);
-}
-          </code></pre>
+</div>}
+</div>          </code></pre>
         </div>
 
         <div class="col" >
           <pre><code class="c++" data-noescape data-trim>
-bool is_age_wise(int age) { return age > 40; }
-
-auto is_person_wise(person p) -> optional&lt;bool> {
+<div class="fragment highlight-current-focus" data-fragment-index="4">bool is_age_wise(int age) { return age > 40; }
+</div>
+<div class="fragment highlight-current-focus" data-fragment-index="5">auto is_person_wise(person p) -> optional&lt;bool> {
   const auto age = person_age(p);
-  if (!age) return nullopt;
+<div class="fragment highlight-current-focus" data-fragment-index="10">  if (!age) return nullopt;
   return is_age_wise(*age);
-}
-
-bool any_known_wise_ones(vector&lt;person> people) {
+</div>}
+</div>
+<div class="fragment highlight-current-focus" data-fragment-index="6">bool any_known_wise_ones(vector&lt;person> people) {
   return std::any_of(
     begin(people), end(people),
     [](person p) {
       return is_person_wise(p).value_or(false);
     });
 }
-          </code></pre>
+</div>          </code></pre>
         </div>
         </div>
 
-        <div style="display: none">
-          <span class="fragment" data-fragment-index="1" data-code-block="1" data-code-focus="2" >Hello</span>
-          <span class="fragment" data-fragment-index="2" data-code-block="1" data-code-focus="6-7" >Hello</span>
-          <span class="fragment" data-fragment-index="3" data-code-block="1" data-code-focus="9-12" >Hello</span>
-          <span class="fragment" data-fragment-index="4" data-code-block="2" data-code-focus="1" >Hello</span>
-          <span class="fragment" data-fragment-index="5" data-code-block="2" data-code-focus="3-7" >Hello</span>
-          <span class="fragment" data-fragment-index="6" data-code-block="2" data-code-focus="9-15" >Hello</span>
-        </div>
-
-        <p class="fragment" data-fragment-index="10" data-code-block="1"
-           data-code-focus="10-11">
-          <span class="fragment" data-fragment-index="10" data-code-block="2"
-                data-code-focus="5-6">
-            Notice anything?
-          </span>
+        <p class="fragment" data-fragment-index="10">
+          Notice anything?
         </p>
       </section>
       <section>
@@ -864,7 +850,7 @@ OutputIt transform(InputIt first1, InputIt last1,
         </div>
 
         <div class="multiCol">
-          <div class="col fragment">
+          <div class="col fragment" data-fragment-index="1">
             Before
             <pre><code data-trim>
 auto names_of_wise_ones(vector&lt;person> people) {
@@ -878,12 +864,12 @@ auto names_of_wise_ones(vector&lt;person> people) {
 }
             </code></pre>
           </div>
-          <div class="col fragment">
+          <div class="col fragment" data-fragment-index="2">
             After
-            <pre><code data-trim>
+            <pre><code data-trim data-noescape>
 auto names_of_wise_ones(vector&lt;person> people) {
-  vector&lt;person> wise_ones;
-  std::copy_if(begin(people), end(people),
+<div class="fragment highlight-current-focus" data-fragment-index="4">  vector&lt;person> wise_ones;
+</div>  std::copy_if(begin(people), end(people),
                std::back_inserter(wise_ones),
                compose(value_or(false),
                        is_person_wise));
@@ -897,9 +883,9 @@ auto names_of_wise_ones(vector&lt;person> people) {
           </div>
         </div>
 
-        <p class="fragment">
+        <p class="fragment" data-fragment-index="3">
           Great, right?
-          <span class="fragment" data-code-block="4" data-code-focus="2">
+          <span class="fragment" data-fragment-index="4">
             We've made a whole extra copy!
           </span>
         </p>
@@ -997,15 +983,7 @@ auto names_of_wise_ones(vector&lt;person> people) {
         { src: 'plugin/markdown/markdown.js' },
         { src: 'plugin/math/math.js', async: true },
         { src: 'plugin/notes/notes.js', async: true },
-        //{ src: 'plugin/highlight/highlight.js', async: true, callback: function () { hljs.initHighlightingOnLoad(); } }
-        { src: 'highlightjs/highlight.pack.js' },
-        {
-          src: 'reveal-code-focus/reveal-code-focus.js',
-          async: true,
-          callback: function() {
-            RevealCodeFocus();
-          }
-        }
+        { src: 'plugin/highlight/highlight.js', async: true, callback: function () { hljs.initHighlightingOnLoad(); } }
       ]
     });
   </script>
